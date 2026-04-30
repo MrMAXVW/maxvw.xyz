@@ -50,7 +50,8 @@
         .font-mono-code { font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
         .font-playwrite { font-family: 'Playwrite NZ Guides', cursive; }
         
-        .text-huge { font-size: clamp(3rem, 12vw, 15rem); line-height: 0.85; letter-spacing: -0.05em; }
+        /* Updated size: 1.2x of clamp(3rem, 12vw, 15rem) -> clamp(3.6rem, 14.4vw, 18rem) */
+        .text-huge { font-size: clamp(3.6rem, 14.4vw, 18rem); line-height: 0.85; letter-spacing: -0.05em; }
         .outline-text { -webkit-text-stroke: 1px black; color: transparent; }
         .dark .outline-text { -webkit-text-stroke: 1px white; color: transparent; }
         
@@ -410,11 +411,11 @@
 
                     <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center">
                         <div className="text-huge font-huge mb-4">
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-4 whitespace-nowrap">
                                 <MagneticText text="CREATIVE" mousePos={mousePos} />
                                 <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
                             </div>
-                            <div className="flex flex-wrap items-baseline gap-x-8">
+                            <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap">
                                 <MagneticText 
                                     text="DEVELOPMENT" 
                                     className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500"
@@ -423,13 +424,15 @@
                                     onMouseLeave={onLeave}
                                 />
                             </div>
-                            <MagneticText 
-                                text="EXPERIMENTAL" 
-                                className="outline-text uppercase" 
-                                mousePos={mousePos}
-                                onMouseEnter={onEnterText}
-                                onMouseLeave={onLeave}
-                            />
+                            <div className="whitespace-nowrap">
+                                <MagneticText 
+                                    text="EXPERIMENTAL" 
+                                    className="outline-text uppercase" 
+                                    mousePos={mousePos}
+                                    onMouseEnter={onEnterText}
+                                    onMouseLeave={onLeave}
+                                />
+                            </div>
                         </div>
                         <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-10">
                             <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight">
@@ -527,7 +530,7 @@
                                 {copyStatus ? 'Copied!' : 'Email'}
                             </button>
                         </div>
-                        <div className="font-mono text-[10px] opacity-40">ALL RIGHTS RESERVED © 1998</div>
+                        <div className="font-mono text-[10px] opacity-40">ALL RIGHTS RESERVED © 1998 maxvw.xyz</div>
                     </footer>
 
                     <button 
