@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAXVW.XYZ | Creative Development</title>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg">
+    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- React & ReactDOM -->
@@ -48,6 +51,12 @@
             background: #007187;
             color: white;
         }
+
+        /* Prevent long words from breaking layout in feature boxes on mobile */
+        .hyphens-auto {
+            hyphens: auto;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body class="selection-lake-blue">
@@ -83,15 +92,14 @@
             if (isWip) {
                 return (
                     <div 
-                        className="bg-black p-12 flex flex-col justify-center items-center gap-4 group cursor-none h-full min-h-[400px]"
+                        className="bg-black p-8 md:p-12 flex flex-col justify-center items-center gap-4 group cursor-none h-full min-h-[300px] md:min-h-[400px]"
                         onMouseEnter={onEnter} 
                         onMouseLeave={onLeave}
                         onClick={() => setIsWip(false)}
                     >
-                        <div className="text-[#007187] font-huge text-8xl tracking-tighter italic">WIP</div>
+                        <div className="text-[#007187] font-huge text-6xl md:text-8xl tracking-tighter italic">WIP</div>
                         <div className="font-mono-code text-white text-[10px] opacity-50 uppercase text-center">
                             Work in progress.<br/>
-                            Stop being so impatient, Max.<br/>
                             (Click to dismiss)
                         </div>
                     </div>
@@ -100,19 +108,23 @@
 
             return (
                 <div 
-                    className="bg-white p-12 flex flex-col gap-8 hover:bg-[#f5f5f5] transition-colors group cursor-none h-full min-h-[400px]"
+                    className="bg-white p-8 md:p-12 flex flex-col gap-6 md:gap-8 hover:bg-[#f5f5f5] transition-colors group cursor-none h-full min-h-[300px] md:min-h-[400px] border-b md:border-none border-black/10"
                     onMouseEnter={onEnter} 
                     onMouseLeave={onLeave} 
                     onClick={() => setIsWip(true)}
                 >
-                    <div className="text-xs font-mono opacity-40">{number} / 04</div>
-                    <div>
-                        <h3 className="text-6xl font-huge mb-4 group-hover:translate-x-2 group-hover:text-[#007187] transition-all tracking-tighter leading-none">{title}</h3>
-                        <p className="text-xl max-w-sm opacity-60 leading-tight">{desc}</p>
+                    <div className="text-[10px] md:text-xs font-mono opacity-40 uppercase tracking-widest">{number} / 04</div>
+                    <div className="flex-grow">
+                        <h3 className="text-4xl md:text-6xl font-huge mb-3 md:mb-4 group-hover:translate-x-2 group-hover:text-[#007187] transition-all tracking-tighter leading-none break-words hyphens-auto">
+                            {title}
+                        </h3>
+                        <p className="text-lg md:text-xl max-w-sm opacity-60 leading-tight">
+                            {desc}
+                        </p>
                     </div>
                     <div className="mt-auto">
-                        <div className="w-12 h-12 rounded-full border border-black flex items-center justify-center group-hover:bg-[#007187] group-hover:border-[#007187] group-hover:text-white transition-all">
-                            <ArrowRightIcon size={20} />
+                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-black flex items-center justify-center group-hover:bg-[#007187] group-hover:border-[#007187] group-hover:text-white transition-all">
+                            <ArrowRightIcon size={18} />
                         </div>
                     </div>
                 </div>
@@ -168,6 +180,10 @@
                 document.body.removeChild(textArea);
             };
 
+            const scrollToTop = () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+
             return (
                 <div className="min-h-screen bg-white text-black font-sans overflow-x-hidden cursor-none">
                     {/* High-Performance Custom Cursor */}
@@ -183,12 +199,21 @@
                         {cursorType === 'text' && <span className="text-white font-black text-xs uppercase tracking-tighter text-center px-4">{copyStatus ? 'Copied!' : 'Focus'}</span>}
                     </div>
 
-                    <nav className="fixed top-0 left-0 w-full z-50 p-8 flex justify-between items-center mix-blend-difference text-white">
-                        <div className="text-2xl font-black tracking-tighter" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>
-                            MAXVW<span className="opacity-30">.XYZ</span>
+                    <nav className="fixed top-0 left-0 w-full z-50 p-6 md:p-8 flex justify-between items-center mix-blend-difference text-white">
+                        <div 
+                            className="h-8 md:h-10 cursor-none" 
+                            onMouseEnter={onEnterHover} 
+                            onMouseLeave={onLeave}
+                            onClick={scrollToTop}
+                        >
+                            <img 
+                                src="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg" 
+                                alt="MAXVW Logo" 
+                                className="h-full w-auto invert"
+                            />
                         </div>
-                        <div className="font-mono text-xs uppercase tracking-widest hidden md:block">
-                            EST. 2026 / 22.3456N 114.1675E
+                        <div className="font-mono text-xs uppercase tracking-widest">
+                            EST. 2026 / HONG KONG
                         </div>
                     </nav>
 
@@ -215,7 +240,7 @@
 
                         <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-10">
                             <p className="max-w-xl text-2xl font-medium leading-tight tracking-tight">
-                                Maxvw is a digital sandbox where <span className="underline decoration-4 decoration-[#007187]">chaos</span> meets code. No roadmaps, no promises, just raw exploration in the browser.
+                                maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187]">chaos</span> meets code. No roadmaps, no promises, just raw exploration in the browser.
                             </p>
                             <div onMouseEnter={onEnterHover} onMouseLeave={onLeave} className="group cursor-none relative overflow-hidden bg-black text-white p-12 rounded-full w-48 h-48 flex items-center justify-center hover:scale-110 transition-transform duration-500 border border-[#007187]/20">
                                 <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
@@ -239,7 +264,7 @@
                         </div>
                     </div>
 
-                    <section className="py-40 px-6 grid grid-cols-1 md:grid-cols-2 gap-px bg-black border-b border-black">
+                    <section className="py-20 md:py-40 px-0 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-px bg-black border-b border-black overflow-hidden">
                         <FeatureBox 
                             number="01" title="The Lab" onEnter={onEnterHover} onLeave={onLeave}
                             desc="Where I throw JS frameworks at the wall to see what sticks. Spoiler: none of them."
@@ -259,10 +284,8 @@
                     </section>
 
                     <footer className="p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
-                        <div className="text-9xl font-playwrite opacity-10 text-black whitespace-nowrap leading-none select-none">MAXVW</div>
-                        
                         <div className="flex gap-10 font-bold uppercase text-sm tracking-tighter">
-                            <a href="https://github.com" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
+                            <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
                             <button 
                                 onClick={handleCopyEmail}
                                 className="hover:text-[#007187] hover:line-through uppercase focus:outline-none" 
