@@ -593,14 +593,22 @@
                         </div>
 
                         <div 
-                            className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform"
+                            className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden"
                             onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setStressCount(s => s + 1)}
                         >
                             <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">Interactive / Stress.Test</div>
-                            <div className={`text-8xl md:text-9xl ${stressCount > 10 ? 'animate-shake' : ''}`}>
+                            <div 
+                                className={`flex items-center justify-center transition-all duration-100 ${stressCount > 10 ? 'animate-shake' : ''}`}
+                                style={{ 
+                                    fontSize: stressCount > 100 
+                                        ? `${Math.min(100 + (stressCount - 100) * 5, 1000)}vh` 
+                                        : 'clamp(5rem, 15vw, 12rem)',
+                                    lineHeight: 1
+                                }}
+                            >
                                 {stressCount === 0 ? '😐' : stressCount < 20 ? '😰' : stressCount < 40 ? '😱' : '💀'}
                             </div>
-                            <div className="mt-8 text-center">
+                            <div className="mt-8 text-center absolute bottom-8">
                                 <span className="font-mono-code text-xs opacity-40 uppercase">Clicks: {stressCount}</span>
                             </div>
                         </div>
