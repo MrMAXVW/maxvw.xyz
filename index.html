@@ -153,7 +153,7 @@
         const PopupModal = ({ id, message, onClose, position }) => {
             return (
                 <div 
-                    className="fixed z-[20000] bg-gray-200 border-2 border-white border-r-gray-600 border-b-gray-600 p-1 window-shadow cursor-auto select-none"
+                    className="fixed z-[20000] bg-gray-200 border-2 border-white border-r-gray-600 border-b-gray-600 p-1 window-shadow cursor-auto select-none max-w-[90vw]"
                     style={{ 
                         left: position.x, 
                         top: position.y,
@@ -161,12 +161,12 @@
                     }}
                 >
                     <div className="bg-[#000080] text-white px-2 py-1 flex justify-between items-center text-[10px] font-bold">
-                        <span>SYSTEM CRITICAL ERROR</span>
-                        <button onClick={() => onClose(id)} className="bg-gray-200 text-black px-1 leading-none border border-black hover:bg-red-500 hover:text-white transition-colors">X</button>
+                        <span className="truncate">SYSTEM CRITICAL ERROR</span>
+                        <button onClick={() => onClose(id)} className="bg-gray-200 text-black px-1 ml-2 leading-none border border-black hover:bg-red-500 hover:text-white transition-colors">X</button>
                     </div>
                     <div className="p-4 flex gap-4 items-start text-black">
-                        <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">!</div>
-                        <div className="text-[11px] font-mono leading-tight flex-grow">
+                        <div className="shrink-0 w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">!</div>
+                        <div className="text-[11px] font-mono leading-tight flex-grow break-words">
                             {message}
                             <div className="mt-4 flex justify-end">
                                 <button onClick={() => onClose(id)} className="border-2 border-white border-r-gray-600 border-b-gray-600 px-4 py-1 bg-gray-200 hover:bg-gray-300 active:border-gray-600 active:border-r-white active:border-b-white">OK</button>
@@ -259,14 +259,14 @@
             if (!isOpen) return null;
             return (
                 <div className="fixed inset-0 z-[10002] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-auto select-auto">
-                    <div className="w-full max-w-2xl bg-[#111] border border-white/20 rounded-xl overflow-hidden flex flex-col shadow-2xl h-[50vh]">
+                    <div className="w-full max-w-2xl bg-[#111] border border-white/20 rounded-xl overflow-hidden flex flex-col shadow-2xl h-[70vh] md:h-[50vh]">
                         <div className="bg-[#222] p-2 flex justify-between items-center border-b border-white/10">
                             <span className="ml-2 font-mono-code text-[10px] text-white/40 uppercase">Terminal</span>
                             <button onClick={onClose} className="text-white/40 hover:text-white font-mono text-[10px] px-2">EXIT</button>
                         </div>
                         <div className="flex-grow p-4 font-mono-code text-xs overflow-y-auto terminal-scroll text-white">
                             {history.map((line, i) => (
-                                <div key={i} className={`mb-1 ${line.type === 'error' ? 'text-red-400' : line.type === 'user' ? 'text-[#007187]' : 'text-white/60'}`}>
+                                <div key={i} className={`mb-1 break-words ${line.type === 'error' ? 'text-red-400' : line.type === 'user' ? 'text-[#007187]' : 'text-white/60'}`}>
                                     {line.content}
                                 </div>
                             ))}
@@ -274,7 +274,7 @@
                         </div>
                         <div className="p-4 pt-0 flex gap-2 items-center">
                             <span className="text-[#007187] font-bold">{'>'}</span>
-                            <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleCommand} className="flex-grow bg-transparent border-none outline-none text-white font-mono-code text-xs" />
+                            <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleCommand} className="flex-grow bg-transparent border-none outline-none text-white font-mono-code text-xs" spellCheck="false" autoComplete="off" />
                         </div>
                     </div>
                 </div>
@@ -301,7 +301,6 @@
             const lastPos = useRef({ x: 0, y: 0 });
             const shakeAcc = useRef(0);
             const lastShakeTime = useRef(Date.now());
-            const originalContents = useRef(new Map());
 
             useEffect(() => {
                 const timer = setInterval(() => {
@@ -316,7 +315,7 @@
 
             useEffect(() => {
                 const handleKeyDown = (e) => {
-                    if (e.code === 'Space' && !terminalOpen && document.activeElement.tagName !== 'INPUT') {
+                    if (e.code === 'Space' && !terminalOpen && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
                         e.preventDefault();
                         setTerminalOpen(true);
                     }
@@ -335,7 +334,6 @@
                     if (now - lastShakeTime.current < 500) {
                         shakeAcc.current += dist;
                         if (shakeAcc.current > 5000 && !isDestroyed) {
-                            window.dispatchEvent(new DeviceMotionEvent('devicemotion', { accelerationIncludingGravity: { x: 40, y: 0, z: 0 } }));
                             shakeAcc.current = 0;
                         }
                     } else { shakeAcc.current = 0; }
@@ -384,15 +382,20 @@
                     "Unauthorized access to fun."
                 ];
                 
-                const newModals = [];
-                for(let i=0; i < 15; i++) {
+                const count = window.innerWidth < 768 ? 8 : 15;
+                for(let i=0; i < count; i++) {
                     setTimeout(() => {
+                        const winWidth = window.innerWidth;
+                        const winHeight = window.innerHeight;
+                        const modalWidth = 280;
+                        const modalHeight = 150;
+                        
                         setModals(prev => [...prev, {
                             id: Date.now() + i,
                             message: messages[Math.floor(Math.random() * messages.length)],
                             position: {
-                                x: Math.random() * (window.innerWidth - 300),
-                                y: Math.random() * (window.innerHeight - 200)
+                                x: Math.max(10, Math.random() * (winWidth - modalWidth - 20)),
+                                y: Math.max(10, Math.random() * (winHeight - modalHeight - 20))
                             }
                         }]);
                     }, i * 150);
@@ -405,13 +408,16 @@
 
             const handleCopyEmail = (e) => {
                 e.preventDefault();
+                const email = "max@maxvw.xyz";
                 const textArea = document.createElement("textarea");
-                textArea.value = "max@maxvw.xyz";
+                textArea.value = email;
                 document.body.appendChild(textArea);
                 textArea.select();
-                document.execCommand('copy');
-                setCopyStatus(true);
-                setTimeout(() => setCopyStatus(false), 2000);
+                try {
+                    document.execCommand('copy');
+                    setCopyStatus(true);
+                    setTimeout(() => setCopyStatus(false), 2000);
+                } catch (err) {}
                 document.body.removeChild(textArea);
             };
 
@@ -475,7 +481,7 @@
                     <div className="relative">
                         <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center">
                             <div className="text-huge font-huge mb-4">
-                                <div className="flex items-center gap-4 whitespace-nowrap">
+                                <div className="flex items-center gap-4 whitespace-nowrap overflow-hidden">
                                     <MagneticText text="CREATIVE" mousePos={mousePos} />
                                     <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
                                 </div>
@@ -492,7 +498,7 @@
                                 </p>
                                 <button 
                                     onClick={handleUselessClick} onMouseEnter={onEnterHover} onMouseLeave={onLeave}
-                                    className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500"
+                                    className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500 shrink-0"
                                 >
                                     <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                                     <ArrowUpRightIcon size={48} className="relative z-10" />
@@ -529,7 +535,7 @@
                             </div>
 
                             <div 
-                                className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden"
+                                className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden min-h-[300px]"
                                 onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setStressCount(s => s + 1)}
                             >
                                 <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">Interactive / Stress.Test</div>
@@ -543,7 +549,7 @@
                             </div>
 
                             <div 
-                                className="p-8 flex flex-col justify-between border-b md:border-l border-black/10 dark:border-white/10 text-white cursor-none animate-danger hover:bg-black transition-all group overflow-hidden"
+                                className="p-8 flex flex-col justify-between border-b md:border-l border-black/10 dark:border-white/10 text-white cursor-none animate-danger hover:bg-black transition-all group overflow-hidden min-h-[200px]"
                                 onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={triggerModals}
                             >
                                 <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest text-white/60">Utility / Panic.Button</div>
@@ -554,7 +560,7 @@
                             <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-black/10 dark:border-white/10 md:col-span-3 group overflow-hidden">
                                 <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">Analytics / Life.Odometer</div>
                                 <div className="my-8">
-                                    <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase">Total Mouse Distance (PX):</span>
+                                    <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase text-wrap">Total Mouse Distance (PX):</span>
                                     <h3 className="text-5xl md:text-9xl font-huge tracking-tighter tabular-nums truncate">{Math.floor(travelDistance).toLocaleString()}</h3>
                                 </div>
                                 <div className="flex flex-wrap gap-4 font-mono text-[10px] uppercase opacity-40">
@@ -564,7 +570,7 @@
                             </div>
 
                             <div 
-                                className="bg-black dark:bg-white text-white dark:text-black p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] transition-colors"
+                                className="bg-black dark:bg-white text-white dark:text-black p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] transition-colors min-h-[150px]"
                                 onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
                             >
                                 <div className="text-sm font-huge tracking-widest uppercase">Get in touch</div>
@@ -574,7 +580,7 @@
 
                         <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-black/5 dark:border-white/5">
                             <div className="flex gap-10 font-bold uppercase text-xs tracking-tighter">
-                                <a href="https://github.com/MrMAXVW" target="_blank" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
+                                <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
                                 <button onClick={handleCopyEmail} className="hover:text-[#007187] hover:line-through uppercase cursor-none" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>
                                     {copyStatus ? 'Copied!' : 'Email'}
                                 </button>
@@ -585,7 +591,7 @@
 
                     <button 
                         onClick={() => setTerminalOpen(true)}
-                        className="fixed bottom-8 right-8 z-[9998] w-10 h-10 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity cursor-none terminal-icon"
+                        className="fixed bottom-8 right-8 z-[9998] w-12 h-12 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center opacity-40 hover:opacity-100 transition-opacity cursor-none shadow-xl border border-white/20"
                         onMouseEnter={onEnterHover} onMouseLeave={onLeave}
                     >
                         <TerminalIcon />
