@@ -106,6 +106,12 @@
         .animate-shake {
             animation: shake 0.5s infinite;
         }
+
+        /* Destroy state styles */
+        .is-destroyed * {
+            transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67), opacity 1.5s ease !important;
+            pointer-events: none !important;
+        }
     </style>
 </head>
 <body class="bg-white dark:bg-black text-black dark:text-white">
@@ -182,7 +188,7 @@
             );
         };
 
-        const Terminal = ({ isOpen, onClose, setDarkMode, setIsCrazy, isCrazy }) => {
+        const Terminal = ({ isOpen, onClose, setDarkMode, setIsCrazy, isCrazy, handleRepair }) => {
             const [input, setInput] = useState('');
             const [history, setHistory] = useState([
                 { type: 'sys', content: 'MAXVW TERMINAL v1.0.5' },
@@ -208,7 +214,7 @@
                     
                     switch(cmd) {
                         case 'help':
-                            newHistory.push({ type: 'sys', content: 'Commands: help, dark, light, crazy, clear, exit, whoami' });
+                            newHistory.push({ type: 'sys', content: 'Commands: help, dark, light, crazy, repair, clear, exit, whoami' });
                             break;
                         case 'dark':
                             setDarkMode(true);
@@ -221,6 +227,10 @@
                         case 'crazy':
                             setIsCrazy(!isCrazy);
                             newHistory.push({ type: 'sys', content: 'Chaos toggled.' });
+                            break;
+                        case 'repair':
+                            handleRepair();
+                            newHistory.push({ type: 'sys', content: 'Reconstructing the universe...' });
                             break;
                         case 'clear':
                             setHistory([{ type: 'sys', content: 'Cleared.' }]);
@@ -286,9 +296,13 @@
             const [terminalOpen, setTerminalOpen] = useState(false);
             const [anxietyTime, setAnxietyTime] = useState(new Date());
             const [stressCount, setStressCount] = useState(0);
+            const [isDestroyed, setIsDestroyed] = useState(false);
             
             const cursorRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
+            const shakeAcc = useRef(0);
+            const lastShakeTime = useRef(Date.now());
+            const originalContents = useRef(new Map());
 
             useEffect(() => {
                 const timer = setInterval(() => {
@@ -313,11 +327,109 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [terminalOpen]);
 
+            // Shake to Destroy Logic
+            useEffect(() => {
+                const handleShake = (e) => {
+                    if (isDestroyed) return;
+                    const acc = e.accelerationIncludingGravity;
+                    if (!acc) return;
+                    const totalAcc = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+                    if (totalAcc > 30) {
+                        triggerDestruction();
+                    }
+                };
+
+                const triggerDestruction = () => {
+                    if (isDestroyed) return;
+                    setIsDestroyed(true);
+                    
+                    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;':\",./<>?";
+                    
+                    const scrambleElement = (el) => {
+                        if (el.children.length > 0) {
+                            Array.from(el.children).forEach(scrambleElement);
+                        } else if (el.innerText && el.innerText.trim() !== '') {
+                            if (!originalContents.current.has(el)) {
+                                originalContents.current.set(el, el.innerText);
+                            }
+                            const originalText = originalContents.current.get(el);
+                            let iterations = 0;
+                            const maxIterations = 15;
+                            
+                            const interval = setInterval(() => {
+                                el.innerText = originalText.split('').map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
+                                iterations++;
+                                if (iterations > maxIterations) clearInterval(interval);
+                            }, 50);
+                        }
+                    };
+
+                    const elements = document.querySelectorAll('#root > div > *');
+                    elements.forEach(el => {
+                        if (el.tagName === 'NAV' || el.classList.contains('terminal-icon')) return;
+                        
+                        // Scramble text within
+                        scrambleElement(el);
+
+                        // Physics collapse
+                        const randomX = (Math.random() - 0.5) * 300;
+                        const randomRotate = (Math.random() - 0.5) * 120;
+                        const screenHeight = window.innerHeight;
+                        el.style.transform = `translate3d(${randomX}px, ${screenHeight}px, 0) rotate(${randomRotate}deg)`;
+                        el.style.opacity = '0.3';
+                    });
+                    
+                    setUselessMessage("SYSTEM SCRAMBLED. TOO MUCH FORCE.");
+                    setTimeout(() => setUselessMessage(null), 3000);
+                    
+                    // Auto repair after 6s
+                    setTimeout(() => handleRepair(), 6000);
+                };
+
+                const handleRepair = () => {
+                    setIsDestroyed(false);
+                    const elements = document.querySelectorAll('#root > div > *');
+                    elements.forEach(el => {
+                        el.style.transform = '';
+                        el.style.opacity = '';
+                    });
+
+                    // Restore text
+                    originalContents.current.forEach((text, el) => {
+                        el.innerText = text;
+                    });
+                    originalContents.current.clear();
+
+                    setUselessMessage("SYSTEM REPAIRED.");
+                    setTimeout(() => setUselessMessage(null), 2000);
+                };
+
+                window.addEventListener('devicemotion', handleShake);
+                window.handleRepair = handleRepair; // Expose to terminal
+                return () => window.removeEventListener('devicemotion', handleShake);
+            }, [isDestroyed]);
+
             useEffect(() => {
                 const handleMouseMove = (e) => {
                     const dx = e.clientX - lastPos.current.x;
                     const dy = e.clientY - lastPos.current.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    // Mouse shake detection (Desktop alternative)
+                    const now = Date.now();
+                    if (now - lastShakeTime.current < 500) {
+                        shakeAcc.current += dist;
+                        if (shakeAcc.current > 5000 && !isDestroyed) {
+                            window.dispatchEvent(new DeviceMotionEvent('devicemotion', {
+                                accelerationIncludingGravity: { x: 40, y: 0, z: 0 }
+                            }));
+                            shakeAcc.current = 0;
+                        }
+                    } else {
+                        shakeAcc.current = 0;
+                    }
+                    lastShakeTime.current = now;
+
                     if (dist < 500) setTravelDistance(prev => prev + dist);
                     lastPos.current = { x: e.clientX, y: e.clientY };
                     setMousePos({ x: e.clientX, y: e.clientY });
@@ -328,7 +440,7 @@
                 };
                 window.addEventListener('mousemove', handleMouseMove);
                 return () => window.removeEventListener('mousemove', handleMouseMove);
-            }, []);
+            }, [isDestroyed]);
 
             useEffect(() => {
                 let interval;
@@ -368,9 +480,13 @@
                 document.body.removeChild(textArea);
             };
 
+            const handleRepair = () => {
+                if (window.handleRepair) window.handleRepair();
+            };
+
             return (
                 <div 
-                    className={`min-h-screen text-black dark:text-white font-sans overflow-x-hidden cursor-none transition-colors duration-500 ${isCrazy ? 'crazy-transition' : ''}`}
+                    className={`min-h-screen text-black dark:text-white font-sans overflow-x-hidden cursor-none transition-colors duration-500 ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
                     style={{ backgroundColor: isCrazy ? crazyBg : (darkMode ? '#000' : '#fff') }}
                 >
                     <div 
@@ -385,10 +501,10 @@
                         {cursorType === 'text' && <span className="text-white font-black text-xs uppercase tracking-tighter text-center px-4">{copyStatus ? 'Copied!' : 'Avoid'}</span>}
                     </div>
 
-                    <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} setDarkMode={setDarkMode} setIsCrazy={setIsCrazy} isCrazy={isCrazy} />
+                    <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} setDarkMode={setDarkMode} setIsCrazy={setIsCrazy} isCrazy={isCrazy} handleRepair={handleRepair} />
 
                     {uselessMessage && (
-                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] bg-black text-white px-8 py-4 rounded-lg font-mono text-sm uppercase tracking-widest animate-bounce border-2 border-white">
+                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] bg-black text-white px-8 py-4 rounded-lg font-mono text-sm uppercase tracking-widest animate-bounce border-2 border-white text-center">
                             {uselessMessage}
                         </div>
                     )}
@@ -535,7 +651,7 @@
 
                     <button 
                         onClick={() => setTerminalOpen(true)}
-                        className="fixed bottom-8 right-8 z-[9998] w-10 h-10 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity cursor-none"
+                        className="fixed bottom-8 right-8 z-[9998] w-10 h-10 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity cursor-none terminal-icon"
                         onMouseEnter={onEnterHover} onMouseLeave={onLeave}
                     >
                         <TerminalIcon />
