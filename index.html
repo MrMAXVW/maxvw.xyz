@@ -63,10 +63,6 @@
             hyphens: auto;
             word-wrap: break-word;
         }
-
-        /* Floating notification for mobile */
-        .toast-enter { transform: translateY(100%); opacity: 0; }
-        .toast-active { transform: translateY(0); opacity: 1; transition: all 0.3s ease; }
     </style>
 </head>
 <body class="selection-lake-blue">
@@ -191,7 +187,7 @@
             };
 
             return (
-                <div className="min-h-screen bg-white text-black font-sans overflow-x-hidden cursor-none sm:cursor-none">
+                <div className="min-h-screen bg-white text-black font-sans overflow-x-hidden cursor-none">
                     {/* High-Performance Custom Cursor */}
                     <div 
                         ref={cursorRef}
@@ -273,8 +269,8 @@
                             <div className="flex items-center font-marquee">
                                 <span className="text-5xl md:text-8xl px-4 outline-text">FAST INTERFACE — </span>
                                 <span className="text-5xl md:text-8xl px-4 italic text-[#007187]">CLEAN CODE — </span>
-                                <span className="text-8xl px-4 outline-text">NO BULLSHIT — </span>
-                                <span className="text-8xl px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                                <span className="text-5xl md:text-8xl px-4 outline-text">NO BULLSHIT — </span>
+                                <span className="text-5xl md:text-8xl px-4 italic text-[#871600]">MAXVW.XYZ — </span>
                             </div>
                         </div>
                     </div>
@@ -298,26 +294,22 @@
                         />
                     </section>
 
-                    <footer className="p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
-                        <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-center">
-                            <div className="flex gap-10 font-bold uppercase text-xs md:text-sm tracking-tighter">
-                                <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
-                                <button 
-                                    onClick={handleCopyEmail}
-                                    className="hover:text-[#007187] hover:line-through uppercase focus:outline-none" 
-                                    onMouseEnter={onEnterHover} 
-                                    onMouseLeave={onLeave}
-                                >
-                                    {copyStatus ? 'Email Copied!' : 'Email'}
-                                </button>
-                            </div>
-                            <span className="font-mono text-[9px] md:text-[10px] opacity-30 uppercase tracking-widest text-center">
-                                ( This is just a landing page )
-                            </span>
+                    <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-10 border-t border-black/5">
+                        <div className="flex gap-10 font-bold uppercase text-xs md:text-sm tracking-tighter">
+                            <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
+                            <button 
+                                onClick={handleCopyEmail}
+                                className="hover:text-[#007187] hover:line-through uppercase focus:outline-none" 
+                                onMouseEnter={onEnterHover} 
+                                onMouseLeave={onLeave}
+                            >
+                                {copyStatus ? 'Email Copied!' : 'Email'}
+                            </button>
                         </div>
 
-                        <div className="font-mono text-[9px] md:text-[10px] opacity-40 text-center md:text-right">
+                        <div className="font-mono text-[9px] md:text-[10px] opacity-40 text-center md:text-right leading-relaxed">
                             ALL RIGHTS RESERVED © 1998<br/>
+                            <span className="md:hidden">——————<br/></span>
                             BUILT BY A HUMAN (PROBABLY)
                         </div>
                     </footer>
