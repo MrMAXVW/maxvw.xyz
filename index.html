@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -47,7 +48,8 @@
         .font-serif-italic { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 900; }
         .font-mono-code { font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
         
-        .text-huge { font-size: clamp(3.6rem, 14.4vw, 18rem); line-height: 0.85; letter-spacing: -0.05em; }
+        /* Adjusted clamp to prevent overflow on mobile (375px) */
+        .text-huge { font-size: clamp(2.2rem, 12vw, 16rem); line-height: 0.85; letter-spacing: -0.05em; }
         .outline-text { -webkit-text-stroke: 1px black; color: transparent; }
         .dark .outline-text { -webkit-text-stroke: 1px white; color: transparent; }
         
@@ -430,7 +432,7 @@
 
             return (
                 <div 
-                    className={`min-h-screen text-black dark:text-white font-sans cursor-none transition-colors duration-500 ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
+                    className={`min-h-screen text-black dark:text-white font-sans cursor-none transition-colors duration-500 overflow-x-hidden ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
                     style={{ backgroundColor: isCrazy ? crazyBg : (darkMode ? '#000' : '#fff') }}
                 >
                     {/* Infinite Fake Progress Bar */}
@@ -479,16 +481,17 @@
                     </nav>
 
                     <div className="relative">
-                        <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center">
+                        {/* Added overflow-hidden to main to prevent large text from bleeding out */}
+                        <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center overflow-hidden">
                             <div className="text-huge font-huge mb-4">
                                 <div className="flex items-center gap-4 whitespace-nowrap overflow-hidden">
                                     <MagneticText text="CREATIVE" mousePos={mousePos} />
                                     <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
                                 </div>
-                                <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap">
+                                <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap overflow-hidden">
                                     <MagneticText text="DEVELOPMENT" className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
                                 </div>
-                                <div className="whitespace-nowrap">
+                                <div className="whitespace-nowrap overflow-hidden">
                                     <MagneticText text="EXPERIMENTAL" className="outline-text uppercase" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
                                 </div>
                             </div>
@@ -520,7 +523,7 @@
                             </div>
                         </div>
 
-                        <section className="p-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-auto md:min-h-[800px]">
+                        <section className="p-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-auto md:min-h-[800px] overflow-hidden">
                             <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-b md:border-r border-black/10 dark:border-white/10 md:col-span-2 overflow-hidden">
                                 <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">System / Anxiety.Clock</div>
                                 <div className="my-auto">
@@ -610,3 +613,5 @@
     </script>
 </body>
 </html>
+
+```
