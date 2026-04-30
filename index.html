@@ -71,18 +71,33 @@
             word-wrap: break-word;
         }
 
-        /* Animation for crazy mode background transitions */
         .crazy-transition {
             transition: background-color 0.1s linear !important;
         }
 
-        /* Terminal specific scrollbar */
         .terminal-scroll::-webkit-scrollbar {
             width: 4px;
         }
         .terminal-scroll::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 2px;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .animate-shake {
+            animation: shake 0.5s infinite;
         }
     </style>
 </head>
@@ -116,9 +131,8 @@
         const Terminal = ({ isOpen, onClose, setDarkMode, setIsCrazy, isCrazy }) => {
             const [input, setInput] = useState('');
             const [history, setHistory] = useState([
-                { type: 'sys', content: 'MAXVW TERMINAL v1.0.4' },
-                { type: 'sys', content: 'Type "help" to see available commands or "exit" to quit.' },
-                { type: 'sys', content: 'Hold SPACEBAR to toggle this terminal anytime.' }
+                { type: 'sys', content: 'MAXVW TERMINAL v1.0.5' },
+                { type: 'sys', content: 'Hold SPACEBAR to toggle.' }
             ]);
             const inputRef = useRef(null);
             const historyEndRef = useRef(null);
@@ -140,37 +154,34 @@
                     
                     switch(cmd) {
                         case 'help':
-                            newHistory.push({ type: 'sys', content: 'Commands: help, dark, light, crazy, clear, exit, whoami, ping' });
+                            newHistory.push({ type: 'sys', content: 'Commands: help, dark, light, crazy, clear, exit, whoami' });
                             break;
                         case 'dark':
                             setDarkMode(true);
-                            newHistory.push({ type: 'sys', content: 'Switched to the dark side. Good choice.' });
+                            newHistory.push({ type: 'sys', content: 'Embracing the void.' });
                             break;
                         case 'light':
                             setDarkMode(false);
-                            newHistory.push({ type: 'sys', content: 'My eyes! Why would you do that?' });
+                            newHistory.push({ type: 'sys', content: 'Flashbang out!' });
                             break;
                         case 'crazy':
                             setIsCrazy(!isCrazy);
-                            newHistory.push({ type: 'sys', content: isCrazy ? 'Chaos stopped. Booooring.' : 'Chaos initiated. Enjoy the migraine.' });
+                            newHistory.push({ type: 'sys', content: 'Chaos toggled.' });
                             break;
                         case 'clear':
-                            setHistory([{ type: 'sys', content: 'Terminal cleared.' }]);
+                            setHistory([{ type: 'sys', content: 'Cleared.' }]);
                             setInput('');
                             return;
                         case 'exit':
                             onClose();
                             break;
                         case 'whoami':
-                            newHistory.push({ type: 'sys', content: 'Just another soul stuck in a browser. Probably Max\'s friend.' });
-                            break;
-                        case 'ping':
-                            newHistory.push({ type: 'sys', content: 'Pong. I\'m alive, unlike your social life.' });
+                            newHistory.push({ type: 'sys', content: 'You are an observer in Max\'s chaos.' });
                             break;
                         case '':
                             break;
                         default:
-                            newHistory.push({ type: 'error', content: `Command not found: ${cmd}. Try "help" if you're lost.` });
+                            newHistory.push({ type: 'error', content: `Unknown command: ${cmd}` });
                     }
                     
                     setHistory(newHistory);
@@ -181,28 +192,21 @@
             if (!isOpen) return null;
 
             return (
-                <div className="fixed inset-0 z-[10002] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 md:p-10 cursor-auto">
-                    <div className="w-full max-w-3xl bg-[#111] border border-white/20 rounded-xl overflow-hidden flex flex-col shadow-2xl h-[60vh]">
-                        <div className="bg-[#222] p-3 flex justify-between items-center border-b border-white/10">
-                            <div className="flex gap-2 items-center">
-                                <div className="w-3 h-3 rounded-full bg-red-500" />
-                                <div className="w-3 h-3 rounded-full bg-yellow-500" />
-                                <div className="w-3 h-3 rounded-full bg-green-500" />
-                                <span className="ml-3 font-mono-code text-[10px] text-white/40 uppercase tracking-widest flex items-center gap-2">
-                                    <TerminalIcon /> Spacebar Terminal
-                                </span>
-                            </div>
-                            <button onClick={onClose} className="text-white/40 hover:text-white font-mono text-xs">CLOSE [ESC]</button>
+                <div className="fixed inset-0 z-[10002] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-auto">
+                    <div className="w-full max-w-2xl bg-[#111] border border-white/20 rounded-xl overflow-hidden flex flex-col shadow-2xl h-[50vh]">
+                        <div className="bg-[#222] p-2 flex justify-between items-center border-b border-white/10">
+                            <span className="ml-2 font-mono-code text-[10px] text-white/40 uppercase">Terminal</span>
+                            <button onClick={onClose} className="text-white/40 hover:text-white font-mono text-[10px] px-2">EXIT</button>
                         </div>
-                        <div className="flex-grow p-6 font-mono-code text-sm overflow-y-auto terminal-scroll">
+                        <div className="flex-grow p-4 font-mono-code text-xs overflow-y-auto terminal-scroll">
                             {history.map((line, i) => (
-                                <div key={i} className={`mb-1 ${line.type === 'error' ? 'text-red-400' : line.type === 'user' ? 'text-[#007187]' : 'text-white/80'}`}>
+                                <div key={i} className={`mb-1 ${line.type === 'error' ? 'text-red-400' : line.type === 'user' ? 'text-[#007187]' : 'text-white/60'}`}>
                                     {line.content}
                                 </div>
                             ))}
                             <div ref={historyEndRef} />
                         </div>
-                        <div className="p-6 pt-0 flex gap-2 items-center">
+                        <div className="p-4 pt-0 flex gap-2 items-center">
                             <span className="text-[#007187] font-bold">{'>'}</span>
                             <input 
                                 ref={inputRef}
@@ -210,60 +214,8 @@
                                 value={input}
                                 onChange={(e) => setInput(e.target.value)}
                                 onKeyDown={handleCommand}
-                                className="flex-grow bg-transparent border-none outline-none text-white font-mono-code"
-                                autoFocus
+                                className="flex-grow bg-transparent border-none outline-none text-white font-mono-code text-xs"
                             />
-                        </div>
-                    </div>
-                </div>
-            );
-        };
-
-        const FeatureBox = ({ number, title, desc, onEnter, onLeave }) => {
-            const [isWip, setIsWip] = useState(false);
-
-            useEffect(() => {
-                if (window.lucide) {
-                    window.lucide.createIcons();
-                }
-            }, [isWip]);
-
-            if (isWip) {
-                return (
-                    <div 
-                        className="bg-black dark:bg-white p-8 md:p-12 flex flex-col justify-center items-center gap-4 group cursor-none h-full min-h-[300px] md:min-h-[400px]"
-                        onMouseEnter={onEnter} 
-                        onMouseLeave={onLeave}
-                        onClick={() => setIsWip(false)}
-                    >
-                        <div className="text-[#007187] font-huge text-6xl md:text-8xl tracking-tighter italic">WIP</div>
-                        <div className="font-mono-code text-white dark:text-black text-[10px] opacity-50 uppercase text-center">
-                            Work in progress.<br/>
-                            (Click to dismiss)
-                        </div>
-                    </div>
-                );
-            }
-
-            return (
-                <div 
-                    className="bg-white dark:bg-black p-8 md:p-12 flex flex-col gap-6 md:gap-8 hover:bg-[#f5f5f5] dark:hover:bg-[#111] transition-colors group cursor-none h-full min-h-[300px] md:min-h-[400px] border-b md:border-none border-black/10 dark:border-white/10"
-                    onMouseEnter={onEnter} 
-                    onMouseLeave={onLeave} 
-                    onClick={() => setIsWip(true)}
-                >
-                    <div className="text-[10px] md:text-xs font-mono opacity-40 uppercase tracking-widest">{number} / 04</div>
-                    <div className="flex-grow">
-                        <h3 className="text-4xl md:text-6xl font-huge mb-3 md:mb-4 group-hover:translate-x-2 group-hover:text-[#007187] transition-all tracking-tighter leading-none break-words hyphens-auto">
-                            {title}
-                        </h3>
-                        <p className="text-lg md:text-xl max-w-sm opacity-60 leading-tight">
-                            {desc}
-                        </p>
-                    </div>
-                    <div className="mt-auto">
-                        <div className="w-10 h-10 md:w-12 md:h-12 rounded-full border border-black dark:border-white flex items-center justify-center group-hover:bg-[#007187] group-hover:border-[#007187] group-hover:text-white transition-all">
-                            <ArrowRightIcon size={18} />
                         </div>
                     </div>
                 </div>
@@ -272,6 +224,7 @@
 
         const App = () => {
             const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+            const [travelDistance, setTravelDistance] = useState(0);
             const [cursorType, setCursorType] = useState('default'); 
             const [copyStatus, setCopyStatus] = useState(false);
             const [darkMode, setDarkMode] = useState(false);
@@ -280,11 +233,22 @@
             const [isCrazy, setIsCrazy] = useState(false);
             const [crazyBg, setCrazyBg] = useState('');
             const [terminalOpen, setTerminalOpen] = useState(false);
+            const [anxietyTime, setAnxietyTime] = useState(new Date());
+            const [stressCount, setStressCount] = useState(0);
             
             const cursorRef = useRef(null);
             const requestRef = useRef();
+            const lastPos = useRef({ x: 0, y: 0 });
 
-            // Toggle Dark Mode
+            // Anxiety Clock: 1.5x speed
+            useEffect(() => {
+                const timer = setInterval(() => {
+                    setAnxietyTime(prev => new Date(prev.getTime() + 1500));
+                }, 1000);
+                return () => clearInterval(timer);
+            }, []);
+
+            // Dark Mode Class
             useEffect(() => {
                 if (darkMode) {
                     document.documentElement.classList.add('dark');
@@ -293,37 +257,29 @@
                 }
             }, [darkMode]);
 
-            // Spacebar Terminal Listener
+            // Spacebar Listener
             useEffect(() => {
                 const handleKeyDown = (e) => {
-                    if (e.code === 'Space' && !terminalOpen) {
+                    if (e.code === 'Space' && !terminalOpen && document.activeElement.tagName !== 'INPUT') {
+                        e.preventDefault();
                         setTerminalOpen(true);
                     }
-                    if (e.key === 'Escape') {
-                        setTerminalOpen(false);
-                    }
+                    if (e.key === 'Escape') setTerminalOpen(false);
                 };
-
                 window.addEventListener('keydown', handleKeyDown);
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [terminalOpen]);
 
-            // Crazy Mode Loop
-            useEffect(() => {
-                let interval;
-                if (isCrazy) {
-                    interval = setInterval(() => {
-                        const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
-                        setCrazyBg(randomColor);
-                    }, 100);
-                } else {
-                    setCrazyBg('');
-                }
-                return () => clearInterval(interval);
-            }, [isCrazy]);
-
+            // Mouse Distance Tracking
             useEffect(() => {
                 const handleMouseMove = (e) => {
+                    const dx = e.clientX - lastPos.current.x;
+                    const dy = e.clientY - lastPos.current.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < 500) { // Filter jumps
+                        setTravelDistance(prev => prev + dist);
+                    }
+                    lastPos.current = { x: e.clientX, y: e.clientY };
                     setMousePos({ x: e.clientX, y: e.clientY });
                 };
 
@@ -336,12 +292,23 @@
 
                 window.addEventListener('mousemove', handleMouseMove);
                 requestRef.current = requestAnimationFrame(updateCursor);
-
                 return () => {
                     window.removeEventListener('mousemove', handleMouseMove);
                     cancelAnimationFrame(requestRef.current);
                 };
             }, [mousePos]);
+
+            // Crazy Mode Loop
+            useEffect(() => {
+                let interval;
+                if (isCrazy) {
+                    interval = setInterval(() => {
+                        const randomColor = `hsl(${Math.random() * 360}, 70%, 50%)`;
+                        setCrazyBg(randomColor);
+                    }, 100);
+                }
+                return () => clearInterval(interval);
+            }, [isCrazy]);
 
             const onEnterHover = () => setCursorType('hover');
             const onEnterText = () => setCursorType('text');
@@ -350,13 +317,11 @@
             const handleUselessClick = () => {
                 setUselessMessage("This is a useless button.");
                 setTimeout(() => setUselessMessage(null), 2000);
-                
                 const newCount = clickCount + 1;
                 setClickCount(newCount);
-                
                 if (newCount === 5) {
                     setIsCrazy(!isCrazy);
-                    setClickCount(0); // Reset for next toggle
+                    setClickCount(0);
                 }
             };
 
@@ -367,18 +332,15 @@
                 textArea.value = email;
                 document.body.appendChild(textArea);
                 textArea.select();
-                try {
-                    document.execCommand('copy');
-                    setCopyStatus(true);
-                    setTimeout(() => setCopyStatus(false), 2000);
-                } catch (err) {
-                    console.error('Fallback: Oops, unable to copy', err);
-                }
+                document.execCommand('copy');
+                setCopyStatus(true);
+                setTimeout(() => setCopyStatus(false), 2000);
                 document.body.removeChild(textArea);
             };
 
-            const scrollToTop = () => {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+            const triggerStress = () => {
+                setStressCount(prev => prev + 1);
+                setTimeout(() => setStressCount(prev => Math.max(0, prev - 1)), 2000);
             };
 
             return (
@@ -386,7 +348,6 @@
                     className={`min-h-screen text-black dark:text-white font-sans overflow-x-hidden cursor-none transition-colors duration-500 ${isCrazy ? 'crazy-transition' : ''}`}
                     style={{ backgroundColor: isCrazy ? crazyBg : (darkMode ? '#000' : '#fff') }}
                 >
-                    {/* High-Performance Custom Cursor */}
                     <div 
                         ref={cursorRef}
                         className={`custom-cursor fixed pointer-events-none z-[9999] rounded-full flex items-center justify-center overflow-hidden transition-[width,height,background-color] duration-200 ease-out mix-blend-difference
@@ -399,166 +360,156 @@
                         {cursorType === 'text' && <span className="text-white font-black text-xs uppercase tracking-tighter text-center px-4">{copyStatus ? 'Copied!' : 'Focus'}</span>}
                     </div>
 
-                    {/* Spacebar Terminal UI */}
-                    <Terminal 
-                        isOpen={terminalOpen} 
-                        onClose={() => setTerminalOpen(false)} 
-                        setDarkMode={setDarkMode}
-                        setIsCrazy={setIsCrazy}
-                        isCrazy={isCrazy}
-                    />
+                    <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} setDarkMode={setDarkMode} setIsCrazy={setIsCrazy} isCrazy={isCrazy} />
 
-                    {/* Useless Pop-up */}
                     {uselessMessage && (
-                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] bg-black text-white px-8 py-4 rounded-lg font-mono text-sm uppercase tracking-widest animate-bounce shadow-2xl border-2 border-white">
+                        <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] bg-black text-white px-8 py-4 rounded-lg font-mono text-sm uppercase tracking-widest animate-bounce border-2 border-white">
                             {uselessMessage}
                         </div>
                     )}
 
-                    {/* Mobile Toast Notification */}
-                    {copyStatus && (
-                        <div className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[10000] bg-black dark:bg-white text-white dark:text-black px-6 py-3 rounded-full font-mono text-xs uppercase tracking-widest sm:hidden">
-                            Email Copied to Clipboard
-                        </div>
-                    )}
-
                     <nav className="fixed top-0 left-0 w-full z-50 p-6 md:p-8 flex justify-between items-center mix-blend-difference text-white">
-                        <div 
-                            className="h-8 md:h-10 cursor-none flex items-center" 
-                        >
-                            <img 
-                                src="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg" 
-                                alt="MAXVW Logo" 
-                                className="h-full w-auto invert cursor-none"
-                                onMouseEnter={onEnterHover} 
-                                onMouseLeave={onLeave}
-                                onClick={scrollToTop}
-                            />
-                        </div>
-                        
-                        <div className="flex items-center gap-6 md:gap-8">
-                            <div className="font-mono text-[10px] md:text-xs uppercase tracking-widest hidden sm:block">
-                                {isCrazy ? 'STAY CALM — DON\'T PANIC' : 'EST. 1998 / HONG KONG'}
+                        <img 
+                            src="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg" 
+                            alt="Logo" className="h-8 md:h-10 invert cursor-none"
+                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => window.scrollTo({top:0, behavior:'smooth'})}
+                        />
+                        <div className="flex items-center gap-6">
+                            <div className="font-mono text-[10px] uppercase tracking-widest hidden sm:block opacity-60">
+                                {isCrazy ? 'SYSTEM FAILURE' : 'EST. 1998 / HKG'}
                             </div>
-                            
-                            <button 
-                                onClick={() => setDarkMode(!darkMode)}
-                                className="p-2 border border-white/20 rounded-full flex items-center justify-center hover:bg-white hover:text-black transition-all cursor-none"
-                                onMouseEnter={onEnterHover}
-                                onMouseLeave={onLeave}
-                            >
+                            <button onClick={() => setDarkMode(!darkMode)} className="p-2 border border-white/20 rounded-full cursor-none" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>
                                 {darkMode ? <SunIcon /> : <MoonIcon />}
                             </button>
                         </div>
                     </nav>
 
                     <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center">
-                        <div className="relative group">
-                            <h1 className="text-huge font-huge mb-4">
-                                <div className="flex items-center gap-4">
-                                    CREATIVE
-                                    <div className={`h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block ${isCrazy ? 'animate-pulse' : ''}`} />
-                                </div>
-                                <div className="flex flex-wrap items-baseline gap-x-8">
-                                    <span className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
-                                        DEVELOPMENT
-                                    </span>
-                                    <span className="text-sm font-mono-code lowercase tracking-tighter block md:inline max-w-xs leading-tight opacity-40">
-                                        (and other questionable ways to spend time)
-                                    </span>
-                                </div>
-                                <div className="outline-text uppercase" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
-                                    Experimental
-                                </div>
-                            </h1>
-                        </div>
-
+                        <h1 className="text-huge font-huge mb-4">
+                            <div className="flex items-center gap-4">CREATIVE<div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" /></div>
+                            <div className="flex flex-wrap items-baseline gap-x-8">
+                                <span className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500" onMouseEnter={onEnterText} onMouseLeave={onLeave}>DEVELOPMENT</span>
+                                <span className="text-sm font-mono-code lowercase opacity-40">(and other questionable ways to spend time)</span>
+                            </div>
+                            <div className="outline-text uppercase" onMouseEnter={onEnterText} onMouseLeave={onLeave}>Experimental</div>
+                        </h1>
                         <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-10">
-                            <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight tracking-tight">
-                                maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187]">chaos</span> meets code. No roadmaps, no promises, just raw exploration in the browser.
+                            <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight">
+                                maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187]">chaos</span> meets code. No roadmaps, no promises, just raw exploration.
                             </p>
                             <button 
-                                onClick={handleUselessClick}
-                                onMouseEnter={onEnterHover} 
-                                onMouseLeave={onLeave} 
-                                className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500 border border-[#007187]/20"
+                                onClick={handleUselessClick} onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                                className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500"
                             >
                                 <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                                <ArrowUpRightIcon size={48} className="relative z-10 md:w-16 md:h-16 mb-1" />
-                                <div className="relative z-10 text-[8px] uppercase font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                                    {isCrazy ? 'Stop Chaos' : `Click ${5 - clickCount}`}
+                                <ArrowUpRightIcon size={48} className="relative z-10" />
+                                <div className="relative z-10 text-[8px] uppercase font-mono opacity-0 group-hover:opacity-100 transition-opacity mt-2">
+                                    {isCrazy ? 'Stop' : `Toggle ${5-clickCount}`}
                                 </div>
                             </button>
                         </div>
                     </main>
 
-                    <div className="py-20 md:py-40 border-y-2 border-black dark:border-white/20 group overflow-hidden" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
+                    <div className="py-20 md:py-40 border-y border-black/10 dark:border-white/10 group overflow-hidden" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
                         <div className="flex whitespace-nowrap animate-marquee group-hover:pause w-fit">
-                            <div className="flex items-center font-marquee">
-                                <span className="text-5xl md:text-8xl px-4 outline-text">{isCrazy ? 'OH NO — ' : 'FAST INTERFACE — '}</span>
-                                <span className="text-5xl md:text-8xl px-4 italic text-[#007187]">{isCrazy ? 'HELP ME — ' : 'CLEAN CODE — '}</span>
-                                <span className="text-5xl md:text-8xl px-4 outline-text">{isCrazy ? 'MY EYES — ' : 'NO BULLSHIT — '}</span>
-                                <span className="text-5xl md:text-8xl px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                            <div className="flex items-center font-marquee text-5xl md:text-8xl">
+                                <span className="px-4 outline-text">FAST INTERFACE — </span><span className="px-4 italic text-[#007187]">CLEAN CODE — </span><span className="px-4 outline-text">NO BULLSHIT — </span><span className="px-4 italic text-[#871600]">MAXVW.XYZ — </span>
                             </div>
-                            <div className="flex items-center font-marquee">
-                                <span className="text-5xl md:text-8xl px-4 outline-text">{isCrazy ? 'OH NO — ' : 'FAST INTERFACE — '}</span>
-                                <span className="text-5xl md:text-8xl px-4 italic text-[#007187]">{isCrazy ? 'HELP ME — ' : 'CLEAN CODE — '}</span>
-                                <span className="text-5xl md:text-8xl px-4 outline-text">{isCrazy ? 'MY EYES — ' : 'NO BULLSHIT — '}</span>
-                                <span className="text-5xl md:text-8xl px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                            <div className="flex items-center font-marquee text-5xl md:text-8xl">
+                                <span className="px-4 outline-text">FAST INTERFACE — </span><span className="px-4 italic text-[#007187]">CLEAN CODE — </span><span className="px-4 outline-text">NO BULLSHIT — </span><span className="px-4 italic text-[#871600]">MAXVW.XYZ — </span>
                             </div>
                         </div>
                     </div>
 
-                    <section className="py-20 md:py-40 px-0 md:px-6 grid grid-cols-1 md:grid-cols-2 gap-px bg-black dark:bg-white/10 border-b border-black dark:border-white/10 overflow-hidden">
-                        <FeatureBox 
-                            number="01" title="The Lab" onEnter={onEnterHover} onLeave={onLeave}
-                            desc="Where I throw JS frameworks at the wall to see what sticks. Spoiler: none of them."
-                        />
-                        <FeatureBox 
-                            number="02" title="Experiments" onEnter={onEnterHover} onLeave={onLeave}
-                            desc="Visual garbage? Maybe. Interactive? Always. Optimized? Absolutely not."
-                        />
-                        <FeatureBox 
-                            number="03" title="Philosophy" onEnter={onEnterHover} onLeave={onLeave}
-                            desc="If the user can't find the menu in 3 seconds, they don't deserve the content."
-                        />
-                        <FeatureBox 
-                            number="04" title="Contact" onEnter={onEnterHover} onLeave={onLeave}
-                            desc="Send me a mail or don't. I'm probably busy debugging a typo."
-                        />
-                    </section>
-
-                    <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 md:gap-10 border-t border-black/5 dark:border-white/5">
-                        <div className="flex gap-10 font-bold uppercase text-xs md:text-sm tracking-tighter">
-                            <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
-                            <button 
-                                onClick={handleCopyEmail}
-                                className="hover:text-[#007187] hover:line-through uppercase focus:outline-none cursor-none" 
-                                onMouseEnter={onEnterHover} 
-                                onMouseLeave={onLeave}
-                            >
-                                {copyStatus ? 'Email Copied!' : 'Email'}
-                            </button>
+                    {/* Bento Grid Section */}
+                    <section className="p-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-auto md:h-[800px]">
+                        {/* Box 1: Anxiety Clock */}
+                        <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-b md:border-r border-black/10 dark:border-white/10 md:col-span-2 overflow-hidden group">
+                            <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">System / Anxiety.Clock</div>
+                            <div className="my-auto">
+                                <h3 className="text-6xl md:text-8xl font-huge tracking-tighter tabular-nums leading-none">
+                                    {anxietyTime.toLocaleTimeString('en-GB', { hour12: false })}
+                                </h3>
+                                <p className="text-sm font-mono-code mt-4 opacity-40">Time is moving 1.5x faster here. Are you efficient enough?</p>
+                            </div>
+                            <div className="h-1 w-full bg-black/5 dark:bg-white/5 mt-8 overflow-hidden rounded-full">
+                                <div className="h-full bg-[#007187] transition-all duration-1000" style={{ width: `${(anxietyTime.getSeconds() / 60) * 100}%` }} />
+                            </div>
                         </div>
 
-                        <div className="font-mono text-[9px] md:text-[10px] opacity-40 text-center md:text-right leading-relaxed">
-                            ALL RIGHTS RESERVED © 1998<br/>
-                            <span className="md:hidden">——————<br/></span>
-                            BUILT BY A HUMAN (PROBABLY)
+                        {/* Box 2: Stress Test */}
+                        <div 
+                            className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform"
+                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={triggerStress}
+                        >
+                            <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">Interactive / Stress.Test</div>
+                            <div className={`text-8xl md:text-9xl transition-all duration-75 ${stressCount > 5 ? 'animate-shake' : ''}`}>
+                                {stressCount === 0 ? '😐' : stressCount < 10 ? '😰' : stressCount < 20 ? '😱' : '💀'}
+                            </div>
+                            <div className="mt-8 text-center">
+                                <span className="font-mono-code text-xs opacity-40 uppercase tracking-widest">Clicks: {stressCount}</span>
+                                <p className="text-[10px] font-mono-code opacity-20 mt-1 uppercase">Abuse the emoji</p>
+                            </div>
+                        </div>
+
+                        {/* Box 3: Chaos Switch */}
+                        <div 
+                            className="bg-[#007187] p-8 flex flex-col justify-between border-b md:border-l border-black/10 dark:border-white/10 text-white cursor-none hover:bg-[#871600] transition-colors group"
+                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setIsCrazy(!isCrazy)}
+                        >
+                            <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest text-white/60">Utility / Chaos.Toggle</div>
+                            <div className="text-4xl font-huge leading-none tracking-tighter">DON'T TOUCH THIS.</div>
+                            <ArrowUpRightIcon size={32} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
+                        </div>
+
+                        {/* Box 4: Life Odometer */}
+                        <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-black/10 dark:border-white/10 md:col-span-3 group overflow-hidden">
+                            <div className="flex justify-between items-start">
+                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">Analytics / Life.Odometer</div>
+                                <div className="text-[10px] font-mono-code px-2 py-1 bg-black/5 dark:bg-white/10 rounded uppercase">Live Tracking</div>
+                            </div>
+                            <div className="my-8">
+                                <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase">Total Mouse Distance (PX):</span>
+                                <h3 className="text-5xl md:text-9xl font-huge tracking-tighter tabular-nums truncate">
+                                    {Math.floor(travelDistance).toLocaleString()}
+                                </h3>
+                            </div>
+                            <div className="flex flex-wrap gap-4">
+                                <div className="px-3 py-1 border border-black/10 dark:border-white/20 rounded-full font-mono text-[10px] uppercase opacity-40">Calories Burnt: {(travelDistance * 0.0001).toFixed(4)}</div>
+                                <div className="px-3 py-1 border border-black/10 dark:border-white/20 rounded-full font-mono text-[10px] uppercase opacity-40">Sanity Lost: High</div>
+                            </div>
+                        </div>
+
+                        {/* Box 5: Contact Placeholder */}
+                        <div 
+                            className="bg-black dark:bg-white text-white dark:text-black p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] dark:hover:bg-[#007187] transition-colors"
+                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
+                        >
+                            <div className="text-sm font-huge tracking-widest uppercase">Get in touch</div>
+                            <div className="font-mono-code text-[10px] opacity-40">MAX@MAXVW.XYZ</div>
+                        </div>
+                    </section>
+
+                    <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-black/5 dark:border-white/5">
+                        <div className="flex gap-10 font-bold uppercase text-xs tracking-tighter">
+                            <a href="https://github.com/MrMAXVW" target="_blank" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
+                            <button onClick={handleCopyEmail} className="hover:text-[#007187] hover:line-through uppercase cursor-none" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>
+                                {copyStatus ? 'Copied!' : 'Email'}
+                            </button>
+                        </div>
+                        <div className="font-mono text-[10px] opacity-40 text-center md:text-right">
+                            ALL RIGHTS RESERVED © 1998 / BUILT BY A HUMAN (PROBABLY)
                         </div>
                     </footer>
 
-                    {/* Fixed floating terminal trigger for accessibility/mobile */}
                     <button 
                         onClick={() => setTerminalOpen(true)}
                         className="fixed bottom-8 right-8 z-[9998] w-10 h-10 bg-black dark:bg-white text-white dark:text-black rounded-full flex items-center justify-center opacity-20 hover:opacity-100 transition-opacity cursor-none"
-                        onMouseEnter={onEnterHover}
-                        onMouseLeave={onLeave}
+                        onMouseEnter={onEnterHover} onMouseLeave={onLeave}
                     >
                         <TerminalIcon />
                     </button>
 
-                    {/* Gradient Glow */}
                     <div 
                         className="fixed pointer-events-none z-0 w-96 h-96 bg-[#007187] blur-[180px] opacity-10 dark:opacity-20 rounded-full hidden sm:block transition-all"
                         style={{ transform: `translate3d(${mousePos.x - 192}px, ${mousePos.y - 192}px, 0)`, scale: isCrazy ? 3 : (darkMode ? 1.5 : 1), willChange: 'transform' }}
