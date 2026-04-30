@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MAXVW.XYZ | Creative Development</title>
     <!-- Favicon -->
-    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg">
+    <link id="favicon" rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -18,7 +18,7 @@
     <script src="https://unpkg.com/lucide@latest"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&display=swap');
         
         body {
             margin: 0;
@@ -29,6 +29,7 @@
         }
 
         .font-huge { font-family: 'Inter', sans-serif; font-weight: 900; }
+        .font-marquee { font-family: 'Montserrat', sans-serif; font-weight: 900; }
         .font-serif-italic { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 900; }
         .font-mono-code { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; }
         .font-playwrite { font-family: 'Playwrite NZ Guides', cursive; }
@@ -213,7 +214,7 @@
                             />
                         </div>
                         <div className="font-mono text-xs uppercase tracking-widest">
-                            EST. 2026 / HONG KONG
+                            EST. 1998 / HONG KONG
                         </div>
                     </nav>
 
@@ -249,18 +250,20 @@
                         </div>
                     </main>
 
-                    <div className="py-40 whitespace-nowrap overflow-hidden border-y-2 border-black group" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
-                        <div className="inline-block animate-marquee group-hover:pause">
-                            <span className="text-8xl font-huge px-4 outline-text">FAST INTERFACE — </span>
-                            <span className="text-8xl font-huge px-4 italic text-[#007187]">CLEAN CODE — </span>
-                            <span className="text-8xl font-huge px-4 outline-text">NO BULLSHIT — </span>
-                            <span className="text-8xl font-huge px-4 italic text-[#871600]">MAXVW.XYZ — </span>
-                        </div>
-                        <div className="inline-block animate-marquee group-hover:pause">
-                            <span className="text-8xl font-huge px-4 outline-text">FAST INTERFACE — </span>
-                            <span className="text-8xl font-huge px-4 italic text-[#007187]">CLEAN CODE — </span>
-                            <span className="text-8xl font-huge px-4 outline-text">NO BULLSHIT — </span>
-                            <span className="text-8xl font-huge px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                    <div className="py-40 border-y-2 border-black group overflow-hidden" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
+                        <div className="flex whitespace-nowrap animate-marquee group-hover:pause w-fit">
+                            <div className="flex items-center font-marquee">
+                                <span className="text-8xl px-4 outline-text">FAST INTERFACE — </span>
+                                <span className="text-8xl px-4 italic text-[#007187]">CLEAN CODE — </span>
+                                <span className="text-8xl px-4 outline-text">NO BULLSHIT — </span>
+                                <span className="text-8xl px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                            </div>
+                            <div className="flex items-center font-marquee">
+                                <span className="text-8xl px-4 outline-text">FAST INTERFACE — </span>
+                                <span className="text-8xl px-4 italic text-[#007187]">CLEAN CODE — </span>
+                                <span className="text-8xl px-4 outline-text">NO BULLSHIT — </span>
+                                <span className="text-8xl px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                            </div>
                         </div>
                     </div>
 
@@ -297,7 +300,7 @@
                         </div>
 
                         <div className="font-mono text-[10px] opacity-40 text-center md:text-right">
-                            ALL RIGHTS RESERVED © 2026<br/>
+                            ALL RIGHTS RESERVED © 1998<br/>
                             BUILT BY A HUMAN (PROBABLY)
                         </div>
                     </footer>
