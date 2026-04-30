@@ -20,7 +20,7 @@
     <!-- Babel for JSX -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/@babel/standalone/lucide-react.min.js"></script>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&family=Fira+Code:wght@400;700&display=swap');
@@ -31,14 +31,12 @@
             cursor: none;
             overflow-x: hidden;
             transition: background-color 0.5s ease;
-            /* Disable text selection across the entire site */
             -webkit-user-select: none;
             -moz-user-select: none;
             -ms-user-select: none;
             user-select: none;
         }
 
-        /* Hide custom cursor on mobile/touch devices */
         @media (pointer: coarse) {
             body { cursor: auto !important; }
             .custom-cursor { display: none !important; }
@@ -48,9 +46,7 @@
         .font-marquee { font-family: 'Montserrat', sans-serif; font-weight: 900; }
         .font-serif-italic { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 900; }
         .font-mono-code { font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
-        .font-playwrite { font-family: 'Playwrite NZ Guides', cursive; }
         
-        /* Updated size: 1.2x of clamp(3rem, 12vw, 15rem) -> clamp(3.6rem, 14.4vw, 18rem) */
         .text-huge { font-size: clamp(3.6rem, 14.4vw, 18rem); line-height: 0.85; letter-spacing: -0.05em; }
         .outline-text { -webkit-text-stroke: 1px black; color: transparent; }
         .dark .outline-text { -webkit-text-stroke: 1px white; color: transparent; }
@@ -59,7 +55,7 @@
             display: inline-block;
             transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
             will-change: transform;
-            white-space: pre; /* Keep spaces intact */
+            white-space: pre;
         }
 
         @keyframes marquee {
@@ -71,12 +67,6 @@
             animation: marquee 20s linear infinite;
         }
         .pause { animation-play-state: paused; }
-
-        /* Custom selection (though disabled by body-level select-none, good to keep for safety) */
-        .selection-none ::selection {
-            background: transparent;
-            color: inherit;
-        }
 
         .crazy-transition {
             transition: background-color 0.1s linear !important;
@@ -107,10 +97,35 @@
             animation: shake 0.5s infinite;
         }
 
-        /* Destroy state styles */
         .is-destroyed * {
             transition: transform 1.5s cubic-bezier(0.17, 0.67, 0.83, 0.67), opacity 1.5s ease !important;
             pointer-events: none !important;
+        }
+
+        /* Infinite Fake Progress Bar Animation */
+        @keyframes loading-flicker {
+            0% { width: 0%; }
+            40% { width: 70%; }
+            50% { width: 68%; }
+            80% { width: 99%; }
+            95% { width: 98%; }
+            100% { width: 99%; }
+        }
+        .fake-progress {
+            animation: loading-flicker 10s infinite alternate cubic-bezier(0.445, 0.05, 0.55, 0.95);
+        }
+
+        @keyframes pulse-red {
+            0%, 100% { background-color: #007187; }
+            50% { background-color: #871600; }
+        }
+        .animate-danger {
+            animation: pulse-red 2s infinite;
+        }
+
+        /* Modal Styles */
+        .window-shadow {
+            box-shadow: 8px 8px 0px rgba(0,0,0,0.2);
         }
     </style>
 </head>
@@ -135,9 +150,35 @@
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
         );
 
+        const PopupModal = ({ id, message, onClose, position }) => {
+            return (
+                <div 
+                    className="fixed z-[20000] bg-gray-200 border-2 border-white border-r-gray-600 border-b-gray-600 p-1 window-shadow cursor-auto select-none"
+                    style={{ 
+                        left: position.x, 
+                        top: position.y,
+                        width: '280px'
+                    }}
+                >
+                    <div className="bg-[#000080] text-white px-2 py-1 flex justify-between items-center text-[10px] font-bold">
+                        <span>SYSTEM CRITICAL ERROR</span>
+                        <button onClick={() => onClose(id)} className="bg-gray-200 text-black px-1 leading-none border border-black hover:bg-red-500 hover:text-white transition-colors">X</button>
+                    </div>
+                    <div className="p-4 flex gap-4 items-start text-black">
+                        <div className="w-8 h-8 bg-red-600 rounded-full flex items-center justify-center text-white font-bold text-xl">!</div>
+                        <div className="text-[11px] font-mono leading-tight flex-grow">
+                            {message}
+                            <div className="mt-4 flex justify-end">
+                                <button onClick={() => onClose(id)} className="border-2 border-white border-r-gray-600 border-b-gray-600 px-4 py-1 bg-gray-200 hover:bg-gray-300 active:border-gray-600 active:border-r-white active:border-b-white">OK</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         const MagneticText = ({ text, className = "", mousePos, onMouseEnter, onMouseLeave }) => {
             const containerRef = useRef(null);
-            
             const letters = useMemo(() => text.split('').map((char, i) => ({
                 char,
                 id: i,
@@ -147,15 +188,12 @@
             useEffect(() => {
                 letters.forEach(letter => {
                     if (!letter.ref.current) return;
-                    
                     const rect = letter.ref.current.getBoundingClientRect();
                     const centerX = rect.left + rect.width / 2;
                     const centerY = rect.top + rect.height / 2;
-                    
                     const dx = mousePos.x - centerX;
                     const dy = mousePos.y - centerY;
                     const distance = Math.sqrt(dx * dx + dy * dy);
-                    
                     const radius = 120; 
                     if (distance < radius) {
                         const power = (radius - distance) / radius;
@@ -169,18 +207,9 @@
             }, [mousePos, letters]);
 
             return (
-                <div 
-                    ref={containerRef} 
-                    className={`inline-block ${className}`}
-                    onMouseEnter={onMouseEnter}
-                    onMouseLeave={onMouseLeave}
-                >
+                <div ref={containerRef} className={`inline-block ${className}`} onMouseEnter={onMouseEnter} onMouseLeave={onMouseLeave}>
                     {letters.map((letter) => (
-                        <span 
-                            key={letter.id} 
-                            ref={letter.ref}
-                            className="magnetic-letter"
-                        >
+                        <span key={letter.id} ref={letter.ref} className="magnetic-letter">
                             {letter.char === ' ' ? '\u00A0' : letter.char}
                         </span>
                     ))}
@@ -191,16 +220,14 @@
         const Terminal = ({ isOpen, onClose, setDarkMode, setIsCrazy, isCrazy, handleRepair }) => {
             const [input, setInput] = useState('');
             const [history, setHistory] = useState([
-                { type: 'sys', content: 'MAXVW TERMINAL v1.0.5' },
+                { type: 'sys', content: 'MAXVW TERMINAL v1.0.6' },
                 { type: 'sys', content: 'Hold SPACEBAR to toggle.' }
             ]);
             const inputRef = useRef(null);
             const historyEndRef = useRef(null);
 
             useEffect(() => {
-                if (isOpen && inputRef.current) {
-                    inputRef.current.focus();
-                }
+                if (isOpen && inputRef.current) inputRef.current.focus();
             }, [isOpen]);
 
             useEffect(() => {
@@ -211,39 +238,18 @@
                 if (e.key === 'Enter') {
                     const cmd = input.trim().toLowerCase();
                     const newHistory = [...history, { type: 'user', content: `> ${input}` }];
-                    
                     switch(cmd) {
                         case 'help':
                             newHistory.push({ type: 'sys', content: 'Commands: help, dark, light, crazy, repair, clear, exit, whoami' });
                             break;
-                        case 'dark':
-                            setDarkMode(true);
-                            newHistory.push({ type: 'sys', content: 'Embracing the void.' });
-                            break;
-                        case 'light':
-                            setDarkMode(false);
-                            newHistory.push({ type: 'sys', content: 'Flashbang out!' });
-                            break;
-                        case 'crazy':
-                            setIsCrazy(!isCrazy);
-                            newHistory.push({ type: 'sys', content: 'Chaos toggled.' });
-                            break;
-                        case 'repair':
-                            handleRepair();
-                            newHistory.push({ type: 'sys', content: 'Reconstructing the universe...' });
-                            break;
-                        case 'clear':
-                            setHistory([{ type: 'sys', content: 'Cleared.' }]);
-                            setInput('');
-                            return;
-                        case 'exit':
-                            onClose();
-                            break;
-                        case 'whoami':
-                            newHistory.push({ type: 'sys', content: 'You are an observer in Max\'s chaos.' });
-                            break;
-                        default:
-                            newHistory.push({ type: 'error', content: `Unknown command: ${cmd}` });
+                        case 'dark': setDarkMode(true); break;
+                        case 'light': setDarkMode(false); break;
+                        case 'crazy': setIsCrazy(!isCrazy); break;
+                        case 'repair': handleRepair(); break;
+                        case 'clear': setHistory([{ type: 'sys', content: 'Cleared.' }]); setInput(''); return;
+                        case 'exit': onClose(); break;
+                        case 'whoami': newHistory.push({ type: 'sys', content: 'A soul stuck in a digital glitch.' }); break;
+                        default: newHistory.push({ type: 'error', content: `Unknown command: ${cmd}` });
                     }
                     setHistory(newHistory);
                     setInput('');
@@ -251,7 +257,6 @@
             };
 
             if (!isOpen) return null;
-
             return (
                 <div className="fixed inset-0 z-[10002] bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 cursor-auto select-auto">
                     <div className="w-full max-w-2xl bg-[#111] border border-white/20 rounded-xl overflow-hidden flex flex-col shadow-2xl h-[50vh]">
@@ -269,14 +274,7 @@
                         </div>
                         <div className="p-4 pt-0 flex gap-2 items-center">
                             <span className="text-[#007187] font-bold">{'>'}</span>
-                            <input 
-                                ref={inputRef}
-                                type="text"
-                                value={input}
-                                onChange={(e) => setInput(e.target.value)}
-                                onKeyDown={handleCommand}
-                                className="flex-grow bg-transparent border-none outline-none text-white font-mono-code text-xs"
-                            />
+                            <input ref={inputRef} type="text" value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleCommand} className="flex-grow bg-transparent border-none outline-none text-white font-mono-code text-xs" />
                         </div>
                     </div>
                 </div>
@@ -297,6 +295,7 @@
             const [anxietyTime, setAnxietyTime] = useState(new Date());
             const [stressCount, setStressCount] = useState(0);
             const [isDestroyed, setIsDestroyed] = useState(false);
+            const [modals, setModals] = useState([]);
             
             const cursorRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
@@ -327,129 +326,34 @@
                 return () => window.removeEventListener('keydown', handleKeyDown);
             }, [terminalOpen]);
 
-            // Shake to Destroy Logic
-            useEffect(() => {
-                const handleShake = (e) => {
-                    if (isDestroyed) return;
-                    const acc = e.accelerationIncludingGravity;
-                    if (!acc) return;
-                    const totalAcc = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-                    if (totalAcc > 30) {
-                        triggerDestruction();
-                    }
-                };
-
-                const triggerDestruction = () => {
-                    if (isDestroyed) return;
-                    setIsDestroyed(true);
-                    
-                    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()_+-=[]{}|;':\",./<>?";
-                    
-                    const scrambleElement = (el) => {
-                        if (el.children.length > 0) {
-                            Array.from(el.children).forEach(scrambleElement);
-                        } else if (el.innerText && el.innerText.trim() !== '') {
-                            if (!originalContents.current.has(el)) {
-                                originalContents.current.set(el, el.innerText);
-                            }
-                            const originalText = originalContents.current.get(el);
-                            let iterations = 0;
-                            const maxIterations = 15;
-                            
-                            const interval = setInterval(() => {
-                                el.innerText = originalText.split('').map(() => chars[Math.floor(Math.random() * chars.length)]).join('');
-                                iterations++;
-                                if (iterations > maxIterations) clearInterval(interval);
-                            }, 50);
-                        }
-                    };
-
-                    const elements = document.querySelectorAll('#root > div > *');
-                    elements.forEach(el => {
-                        if (el.tagName === 'NAV' || el.classList.contains('terminal-icon')) return;
-                        
-                        // Scramble text within
-                        scrambleElement(el);
-
-                        // Physics collapse
-                        const randomX = (Math.random() - 0.5) * 300;
-                        const randomRotate = (Math.random() - 0.5) * 120;
-                        const screenHeight = window.innerHeight;
-                        el.style.transform = `translate3d(${randomX}px, ${screenHeight}px, 0) rotate(${randomRotate}deg)`;
-                        el.style.opacity = '0.3';
-                    });
-                    
-                    setUselessMessage("SYSTEM SCRAMBLED. TOO MUCH FORCE.");
-                    setTimeout(() => setUselessMessage(null), 3000);
-                    
-                    // Auto repair after 6s
-                    setTimeout(() => handleRepair(), 6000);
-                };
-
-                const handleRepair = () => {
-                    setIsDestroyed(false);
-                    const elements = document.querySelectorAll('#root > div > *');
-                    elements.forEach(el => {
-                        el.style.transform = '';
-                        el.style.opacity = '';
-                    });
-
-                    // Restore text
-                    originalContents.current.forEach((text, el) => {
-                        el.innerText = text;
-                    });
-                    originalContents.current.clear();
-
-                    setUselessMessage("SYSTEM REPAIRED.");
-                    setTimeout(() => setUselessMessage(null), 2000);
-                };
-
-                window.addEventListener('devicemotion', handleShake);
-                window.handleRepair = handleRepair; // Expose to terminal
-                return () => window.removeEventListener('devicemotion', handleShake);
-            }, [isDestroyed]);
-
             useEffect(() => {
                 const handleMouseMove = (e) => {
                     const dx = e.clientX - lastPos.current.x;
                     const dy = e.clientY - lastPos.current.y;
                     const dist = Math.sqrt(dx * dx + dy * dy);
-                    
-                    // Mouse shake detection (Desktop alternative)
                     const now = Date.now();
                     if (now - lastShakeTime.current < 500) {
                         shakeAcc.current += dist;
                         if (shakeAcc.current > 5000 && !isDestroyed) {
-                            window.dispatchEvent(new DeviceMotionEvent('devicemotion', {
-                                accelerationIncludingGravity: { x: 40, y: 0, z: 0 }
-                            }));
+                            window.dispatchEvent(new DeviceMotionEvent('devicemotion', { accelerationIncludingGravity: { x: 40, y: 0, z: 0 } }));
                             shakeAcc.current = 0;
                         }
-                    } else {
-                        shakeAcc.current = 0;
-                    }
+                    } else { shakeAcc.current = 0; }
                     lastShakeTime.current = now;
-
                     if (dist < 500) setTravelDistance(prev => prev + dist);
                     lastPos.current = { x: e.clientX, y: e.clientY };
                     setMousePos({ x: e.clientX, y: e.clientY });
-                    
-                    if (cursorRef.current) {
-                        cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
-                    }
+                    if (cursorRef.current) cursorRef.current.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0) translate(-50%, -50%)`;
                 };
                 window.addEventListener('mousemove', handleMouseMove);
                 return () => window.removeEventListener('mousemove', handleMouseMove);
             }, [isDestroyed]);
 
             useEffect(() => {
-                let interval;
                 if (isCrazy) {
-                    interval = setInterval(() => {
-                        setCrazyBg(`hsl(${Math.random() * 360}, 70%, 50%)`);
-                    }, 100);
+                    const interval = setInterval(() => setCrazyBg(`hsl(${Math.random() * 360}, 70%, 50%)`), 100);
+                    return () => clearInterval(interval);
                 }
-                return () => clearInterval(interval);
             }, [isCrazy]);
 
             const onEnterHover = () => setCursorType('hover');
@@ -461,17 +365,48 @@
                 setTimeout(() => setUselessMessage(null), 2000);
                 const newCount = clickCount + 1;
                 setClickCount(newCount);
-                if (newCount === 5) {
-                    setIsCrazy(!isCrazy);
-                    setClickCount(0);
+                if (newCount === 5) { setIsCrazy(!isCrazy); setClickCount(0); }
+            };
+
+            const triggerModals = () => {
+                const messages = [
+                    "叫咗你唔好撳㗎啦！",
+                    "點解你咁唔聽話？",
+                    "System overload detected.",
+                    "Your curiosity is dangerous.",
+                    "An unexpected error has occurred.",
+                    "User.intelligence is null.",
+                    "Stop clicking me.",
+                    "你仲撳？",
+                    "ERROR: Curiosity killed the cat.",
+                    "Kernel Panic: Too much Max.",
+                    "Please reboot your life.",
+                    "Unauthorized access to fun."
+                ];
+                
+                const newModals = [];
+                for(let i=0; i < 15; i++) {
+                    setTimeout(() => {
+                        setModals(prev => [...prev, {
+                            id: Date.now() + i,
+                            message: messages[Math.floor(Math.random() * messages.length)],
+                            position: {
+                                x: Math.random() * (window.innerWidth - 300),
+                                y: Math.random() * (window.innerHeight - 200)
+                            }
+                        }]);
+                    }, i * 150);
                 }
+            };
+
+            const closePopup = (id) => {
+                setModals(prev => prev.filter(m => m.id !== id));
             };
 
             const handleCopyEmail = (e) => {
                 e.preventDefault();
-                const email = "max@maxvw.xyz";
                 const textArea = document.createElement("textarea");
-                textArea.value = email;
+                textArea.value = "max@maxvw.xyz";
                 document.body.appendChild(textArea);
                 textArea.select();
                 document.execCommand('copy');
@@ -481,27 +416,39 @@
             };
 
             const handleRepair = () => {
-                if (window.handleRepair) window.handleRepair();
+                setIsDestroyed(false);
+                setModals([]);
+                setUselessMessage("SYSTEM REPAIRED.");
+                setTimeout(() => setUselessMessage(null), 2000);
             };
 
             return (
                 <div 
-                    className={`min-h-screen text-black dark:text-white font-sans overflow-x-hidden cursor-none transition-colors duration-500 ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
+                    className={`min-h-screen text-black dark:text-white font-sans cursor-none transition-colors duration-500 ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
                     style={{ backgroundColor: isCrazy ? crazyBg : (darkMode ? '#000' : '#fff') }}
                 >
+                    {/* Infinite Fake Progress Bar */}
+                    <div className="fixed top-0 left-0 w-full h-[3px] z-[10005] bg-transparent overflow-hidden">
+                        <div className="h-full bg-[#007187] fake-progress shadow-[0_0_10px_#007187]"></div>
+                    </div>
+
                     <div 
                         ref={cursorRef}
                         className={`custom-cursor fixed pointer-events-none z-[9999] rounded-full flex items-center justify-center overflow-hidden transition-[width,height,background-color] duration-200 ease-out mix-blend-difference
                         ${cursorType === 'hover' ? 'w-24 h-24 bg-white' : 
                             cursorType === 'text' ? 'w-32 h-32 bg-[#007187] mix-blend-normal' : 
                             'w-4 h-4 bg-white'}`}
-                        style={{ left: 0, top: 0, willChange: 'transform' }}
+                        style={{ left: 0, top: 0, scale: isCrazy ? 2 : 1 }}
                     >
                         {cursorType === 'hover' && <ArrowUpRightIcon size={32} />}
                         {cursorType === 'text' && <span className="text-white font-black text-xs uppercase tracking-tighter text-center px-4">{copyStatus ? 'Copied!' : 'Avoid'}</span>}
                     </div>
 
                     <Terminal isOpen={terminalOpen} onClose={() => setTerminalOpen(false)} setDarkMode={setDarkMode} setIsCrazy={setIsCrazy} isCrazy={isCrazy} handleRepair={handleRepair} />
+
+                    {modals.map(modal => (
+                        <PopupModal key={modal.id} {...modal} onClose={closePopup} />
+                    ))}
 
                     {uselessMessage && (
                         <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10001] bg-black text-white px-8 py-4 rounded-lg font-mono text-sm uppercase tracking-widest animate-bounce border-2 border-white text-center">
@@ -525,137 +472,116 @@
                         </div>
                     </nav>
 
-                    <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center">
-                        <div className="text-huge font-huge mb-4">
-                            <div className="flex items-center gap-4 whitespace-nowrap">
-                                <MagneticText text="CREATIVE" mousePos={mousePos} />
-                                <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
-                            </div>
-                            <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap">
-                                <MagneticText 
-                                    text="DEVELOPMENT" 
-                                    className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500"
-                                    mousePos={mousePos}
-                                    onMouseEnter={onEnterText}
-                                    onMouseLeave={onLeave}
-                                />
-                            </div>
-                            <div className="whitespace-nowrap">
-                                <MagneticText 
-                                    text="EXPERIMENTAL" 
-                                    className="outline-text uppercase" 
-                                    mousePos={mousePos}
-                                    onMouseEnter={onEnterText}
-                                    onMouseLeave={onLeave}
-                                />
-                            </div>
-                        </div>
-                        <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-10">
-                            <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight">
-                                maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187]">chaos</span> meets code. No roadmaps, no promises, just raw exploration.
-                            </p>
-                            <button 
-                                onClick={handleUselessClick} onMouseEnter={onEnterHover} onMouseLeave={onLeave}
-                                className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500"
-                            >
-                                <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                                <ArrowUpRightIcon size={48} className="relative z-10" />
-                                <div className="relative z-10 text-[8px] uppercase font-mono opacity-0 group-hover:opacity-100 transition-opacity mt-2">
-                                    {isCrazy ? 'Stop' : `Toggle ${5-clickCount}`}
+                    <div className="relative">
+                        <main className="relative pt-40 px-6 min-h-screen flex flex-col justify-center">
+                            <div className="text-huge font-huge mb-4">
+                                <div className="flex items-center gap-4 whitespace-nowrap">
+                                    <MagneticText text="CREATIVE" mousePos={mousePos} />
+                                    <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
                                 </div>
-                            </button>
-                        </div>
-                    </main>
+                                <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap">
+                                    <MagneticText text="DEVELOPMENT" className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
+                                </div>
+                                <div className="whitespace-nowrap">
+                                    <MagneticText text="EXPERIMENTAL" className="outline-text uppercase" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
+                                </div>
+                            </div>
+                            <div className="mt-20 flex flex-col md:flex-row justify-between items-end gap-10">
+                                <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight">
+                                    maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187]">chaos</span> meets code. No roadmaps, no promises, just raw exploration.
+                                </p>
+                                <button 
+                                    onClick={handleUselessClick} onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                                    className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500"
+                                >
+                                    <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                                    <ArrowUpRightIcon size={48} className="relative z-10" />
+                                    <div className="relative z-10 text-[8px] uppercase font-mono opacity-0 group-hover:opacity-100 transition-opacity mt-2">
+                                        {isCrazy ? 'Stop' : `Toggle ${5-clickCount}`}
+                                    </div>
+                                </button>
+                            </div>
+                        </main>
 
-                    <div className="py-20 md:py-40 border-y border-black/10 dark:border-white/10 group overflow-hidden" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
-                        <div className="flex whitespace-nowrap animate-marquee group-hover:pause w-fit">
-                            <div className="flex items-center font-marquee text-5xl md:text-8xl">
-                                <span className="px-4 outline-text">FAST INTERFACE — </span><span className="px-4 italic text-[#007187]">CLEAN CODE — </span><span className="px-4 outline-text">NO BULLSHIT — </span><span className="px-4 italic text-[#871600]">MAXVW.XYZ — </span>
-                            </div>
-                            <div className="flex items-center font-marquee text-5xl md:text-8xl">
-                                <span className="px-4 outline-text">FAST INTERFACE — </span><span className="px-4 italic text-[#007187]">CLEAN CODE — </span><span className="px-4 outline-text">NO BULLSHIT — </span><span className="px-4 italic text-[#871600]">MAXVW.XYZ — </span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <section className="p-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-auto md:min-h-[800px]">
-                        <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-b md:border-r border-black/10 dark:border-white/10 md:col-span-2 overflow-hidden">
-                            <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">System / Anxiety.Clock</div>
-                            <div className="my-auto">
-                                <h3 className="text-6xl md:text-8xl font-huge tracking-tighter tabular-nums leading-none">
-                                    {anxietyTime.toLocaleTimeString('en-GB', { hour12: false })}
-                                </h3>
-                                <p className="text-sm font-mono-code mt-4 opacity-40">Time is moving 1.5x faster here. Are you efficient enough?</p>
-                            </div>
-                            <div className="h-1 w-full bg-black/5 dark:bg-white/5 mt-8 overflow-hidden rounded-full">
-                                <div className="h-full bg-[#007187] transition-all duration-1000" style={{ width: `${(anxietyTime.getSeconds() / 60) * 100}%` }} />
+                        <div className="py-20 md:py-40 border-y border-black/10 dark:border-white/10 group overflow-hidden" onMouseEnter={onEnterText} onMouseLeave={onLeave}>
+                            <div className="flex whitespace-nowrap animate-marquee group-hover:pause w-fit">
+                                <div className="flex items-center font-marquee text-5xl md:text-8xl">
+                                    <span className="px-4 outline-text">FAST INTERFACE — </span><span className="px-4 italic text-[#007187]">CLEAN CODE — </span><span className="px-4 outline-text">NO BULLSHIT — </span><span className="px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                                </div>
+                                <div className="flex items-center font-marquee text-5xl md:text-8xl">
+                                    <span className="px-4 outline-text">FAST INTERFACE — </span><span className="px-4 italic text-[#007187]">CLEAN CODE — </span><span className="px-4 outline-text">NO BULLSHIT — </span><span className="px-4 italic text-[#871600]">MAXVW.XYZ — </span>
+                                </div>
                             </div>
                         </div>
 
-                        <div 
-                            className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden"
-                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setStressCount(s => s + 1)}
-                        >
-                            <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">Interactive / Stress.Test</div>
+                        <section className="p-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-auto md:min-h-[800px]">
+                            <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-b md:border-r border-black/10 dark:border-white/10 md:col-span-2 overflow-hidden">
+                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">System / Anxiety.Clock</div>
+                                <div className="my-auto">
+                                    <h3 className="text-6xl md:text-8xl font-huge tracking-tighter tabular-nums leading-none">
+                                        {anxietyTime.toLocaleTimeString('en-GB', { hour12: false })}
+                                    </h3>
+                                    <p className="text-sm font-mono-code mt-4 opacity-40">Time is moving 1.5x faster here. Are you efficient enough?</p>
+                                </div>
+                                <div className="h-1 w-full bg-black/5 dark:bg-white/5 mt-8 overflow-hidden rounded-full">
+                                    <div className="h-full bg-[#007187] transition-all duration-1000" style={{ width: `${(anxietyTime.getSeconds() / 60) * 100}%` }} />
+                                </div>
+                            </div>
+
                             <div 
-                                className={`flex items-center justify-center transition-all duration-100 ${stressCount > 10 ? 'animate-shake' : ''}`}
-                                style={{ 
-                                    fontSize: stressCount > 100 
-                                        ? `${Math.min(100 + (stressCount - 100) * 5, 1000)}vh` 
-                                        : 'clamp(5rem, 15vw, 12rem)',
-                                    lineHeight: 1
-                                }}
+                                className="bg-white dark:bg-black p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden"
+                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setStressCount(s => s + 1)}
                             >
-                                {stressCount === 0 ? '😐' : stressCount < 20 ? '😰' : stressCount < 40 ? '😱' : '💀'}
+                                <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">Interactive / Stress.Test</div>
+                                <div className={`flex items-center justify-center transition-all duration-100 ${stressCount > 10 ? 'animate-shake' : ''}`}
+                                    style={{ fontSize: stressCount > 100 ? `${Math.min(100 + (stressCount - 100) * 5, 1000)}vh` : 'clamp(5rem, 15vw, 12rem)', lineHeight: 1 }}>
+                                    {stressCount === 0 ? '😐' : stressCount < 20 ? '😰' : stressCount < 40 ? '😱' : '💀'}
+                                </div>
+                                <div className="mt-8 text-center absolute bottom-8">
+                                    <span className="font-mono-code text-xs opacity-40 uppercase">Clicks: {stressCount}</span>
+                                </div>
                             </div>
-                            <div className="mt-8 text-center absolute bottom-8">
-                                <span className="font-mono-code text-xs opacity-40 uppercase">Clicks: {stressCount}</span>
+
+                            <div 
+                                className="p-8 flex flex-col justify-between border-b md:border-l border-black/10 dark:border-white/10 text-white cursor-none animate-danger hover:bg-black transition-all group overflow-hidden"
+                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={triggerModals}
+                            >
+                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest text-white/60">Utility / Panic.Button</div>
+                                <div className="text-4xl font-huge leading-none tracking-tighter">DON'T TOUCH THIS.</div>
+                                <div className="text-[8px] font-mono opacity-30 mt-4 leading-tight uppercase">High risk of system instability. Do not interact if you value your time.</div>
                             </div>
-                        </div>
 
-                        <div 
-                            className="bg-[#007187] p-8 flex flex-col justify-between border-b md:border-l border-black/10 dark:border-white/10 text-white cursor-none hover:bg-[#871600] transition-colors group"
-                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setIsCrazy(!isCrazy)}
-                        >
-                            <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest text-white/60">Utility / Chaos.Toggle</div>
-                            <div className="text-4xl font-huge leading-none tracking-tighter">DON'T TOUCH THIS.</div>
-                            <ArrowUpRightIcon size={32} className="group-hover:translate-x-2 group-hover:-translate-y-2 transition-transform" />
-                        </div>
-
-                        <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-black/10 dark:border-white/10 md:col-span-3 group overflow-hidden">
-                            <div className="flex justify-between items-start">
+                            <div className="bg-white dark:bg-black p-8 md:p-12 flex flex-col justify-between border-black/10 dark:border-white/10 md:col-span-3 group overflow-hidden">
                                 <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">Analytics / Life.Odometer</div>
+                                <div className="my-8">
+                                    <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase">Total Mouse Distance (PX):</span>
+                                    <h3 className="text-5xl md:text-9xl font-huge tracking-tighter tabular-nums truncate">{Math.floor(travelDistance).toLocaleString()}</h3>
+                                </div>
+                                <div className="flex flex-wrap gap-4 font-mono text-[10px] uppercase opacity-40">
+                                    <div>Calories: {(travelDistance * 0.0001).toFixed(4)}</div>
+                                    <div>Sanity: Low</div>
+                                </div>
                             </div>
-                            <div className="my-8">
-                                <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase">Total Mouse Distance (PX):</span>
-                                <h3 className="text-5xl md:text-9xl font-huge tracking-tighter tabular-nums truncate">
-                                    {Math.floor(travelDistance).toLocaleString()}
-                                </h3>
-                            </div>
-                            <div className="flex flex-wrap gap-4 font-mono text-[10px] uppercase opacity-40">
-                                <div>Calories: {(travelDistance * 0.0001).toFixed(4)}</div>
-                                <div>Sanity: Low</div>
-                            </div>
-                        </div>
 
-                        <div 
-                            className="bg-black dark:bg-white text-white dark:text-black p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] transition-colors"
-                            onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
-                        >
-                            <div className="text-sm font-huge tracking-widest uppercase">Get in touch</div>
-                            <div className="font-mono-code text-[10px] opacity-40">MAX@MAXVW.XYZ</div>
-                        </div>
-                    </section>
+                            <div 
+                                className="bg-black dark:bg-white text-white dark:text-black p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] transition-colors"
+                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
+                            >
+                                <div className="text-sm font-huge tracking-widest uppercase">Get in touch</div>
+                                <div className="font-mono-code text-[10px] opacity-40">MAX@MAXVW.XYZ</div>
+                            </div>
+                        </section>
 
-                    <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-black/5 dark:border-white/5">
-                        <div className="flex gap-10 font-bold uppercase text-xs tracking-tighter">
-                            <a href="https://github.com/MrMAXVW" target="_blank" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
-                            <button onClick={handleCopyEmail} className="hover:text-[#007187] hover:line-through uppercase cursor-none" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>
-                                {copyStatus ? 'Copied!' : 'Email'}
-                            </button>
-                        </div>
-                        <div className="font-mono text-[10px] opacity-40">ALL RIGHTS RESERVED © 1998 maxvw.xyz</div>
-                    </footer>
+                        <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-black/5 dark:border-white/5">
+                            <div className="flex gap-10 font-bold uppercase text-xs tracking-tighter">
+                                <a href="https://github.com/MrMAXVW" target="_blank" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
+                                <button onClick={handleCopyEmail} className="hover:text-[#007187] hover:line-through uppercase cursor-none" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>
+                                    {copyStatus ? 'Copied!' : 'Email'}
+                                </button>
+                            </div>
+                            <div className="font-mono text-[10px] opacity-40">ALL RIGHTS RESERVED © 1998 maxvw.xyz</div>
+                        </footer>
+                    </div>
 
                     <button 
                         onClick={() => setTerminalOpen(true)}
