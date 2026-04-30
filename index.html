@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MAXVW.XYZ | Creative Development</title>
+    <title>maxvw.xyz</title>
     <!-- Favicon -->
-    <link id="favicon" rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/maxvw.svg">
+    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/refs/heads/main/favicon.svg">
     
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -287,16 +287,21 @@
                     </section>
 
                     <footer className="p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
-                        <div className="flex gap-10 font-bold uppercase text-sm tracking-tighter">
-                            <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
-                            <button 
-                                onClick={handleCopyEmail}
-                                className="hover:text-[#007187] hover:line-through uppercase focus:outline-none" 
-                                onMouseEnter={onEnterHover} 
-                                onMouseLeave={onLeave}
-                            >
-                                {copyStatus ? 'Email Copied!' : 'Email'}
-                            </button>
+                        <div className="flex flex-col md:flex-row gap-6 md:gap-10 items-center">
+                            <div className="flex gap-10 font-bold uppercase text-sm tracking-tighter">
+                                <a href="https://github.com/MrMAXVW" target="_blank" rel="noopener noreferrer" className="hover:text-[#007187] hover:line-through" onMouseEnter={onEnterHover} onMouseLeave={onLeave}>Github</a>
+                                <button 
+                                    onClick={handleCopyEmail}
+                                    className="hover:text-[#007187] hover:line-through uppercase focus:outline-none" 
+                                    onMouseEnter={onEnterHover} 
+                                    onMouseLeave={onLeave}
+                                >
+                                    {copyStatus ? 'Email Copied!' : 'Email'}
+                                </button>
+                            </div>
+                            <span className="font-mono text-[10px] opacity-30 uppercase tracking-widest">
+                                ( This is just a landing page )
+                            </span>
                         </div>
 
                         <div className="font-mono text-[10px] opacity-40 text-center md:text-right">
