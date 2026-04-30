@@ -2,7 +2,7 @@
 
 "A digital sandbox where chaos meets code. No roadmaps, no promises, just raw exploration in the browser."
 
-Welcome to the source code of **maxvw.xyz**. If you're looking for clean, documented, and production-ready code, you've probably taken a wrong turn at the internet. This is my personal playground for typographic experiments, questionable JavaScript decisions, and breaking things for the sake of "aesthetic."
+Welcome to the source code of [**maxvw.xyz**](https://maxvw.xyz). If you're looking for clean, documented, and production-ready code, you've probably taken a wrong turn at the internet. This is my personal playground for typographic experiments, questionable JavaScript decisions, and breaking things for the sake of "aesthetic."
 
 ## **🎨 Design Language**
 
