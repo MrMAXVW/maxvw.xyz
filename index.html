@@ -295,7 +295,7 @@
                 const handleScroll = () => {
                     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
                     const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-                    const scrolled = (winScroll / height) * 100;
+                    const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
                     setScrollProgress(scrolled);
                 };
                 window.addEventListener('scroll', handleScroll);
@@ -482,7 +482,6 @@
                     </nav>
 
                     <div className="relative">
-                        {/* Implemented asymmetric padding: Left padding for alignment, Zero right padding for edge-to-edge feel */}
                         <main className="relative pt-40 pl-6 pr-0 md:pl-16 md:pr-0 min-h-screen flex flex-col justify-center overflow-hidden">
                             <div className="text-huge font-huge mb-4">
                                 <div className="flex items-center gap-4 whitespace-nowrap overflow-hidden">
@@ -544,7 +543,11 @@
                             >
                                 <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">Interactive / Stress.Test</div>
                                 <div className={`flex items-center justify-center transition-all duration-100 ${stressCount > 10 ? 'animate-shake' : ''}`}
-                                    style={{ fontSize: stressCount > 100 ? `${Math.min(100 + (stressCount - 100) * 5, 1000)}vh` : 'clamp(5rem, 15vw, 12rem)', lineHeight: 1 }}>
+                                    style={{ 
+                                        /* Reduced threshold from 100 to 50 for rapid enlargement */
+                                        fontSize: stressCount > 50 ? `${Math.min(100 + (stressCount - 50) * 5, 1000)}vh` : 'clamp(5rem, 15vw, 12rem)', 
+                                        lineHeight: 1 
+                                    }}>
                                     {stressCount === 0 ? '😐' : stressCount < 20 ? '😰' : stressCount < 40 ? '😱' : '💀'}
                                 </div>
                                 <div className="mt-8 text-center absolute bottom-8">
