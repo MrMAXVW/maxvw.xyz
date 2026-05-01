@@ -411,6 +411,8 @@
             const [markSixNumbers, setMarkSixNumbers] = useState([7, 18, 23, 29, 35, 41]);
             const [isDrawing, setIsDrawing] = useState(false);
             const [catHearts, setCatHearts] = useState([]);
+            const [isIdle, setIsIdle] = useState(false);
+            const [idleCatClicks, setIdleCatClicks] = useState(0);
             
             const cursorRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
@@ -479,6 +481,31 @@
                     return () => clearInterval(interval);
                 }
             }, [isCrazy]);
+
+            useEffect(() => {
+                let timeout;
+                const handleActivity = () => {
+                    if (isIdle) return; // Must click cat 5 times to dismiss
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => setIsIdle(true), 30000);
+                };
+
+                if (!isIdle) {
+                    handleActivity();
+                    window.addEventListener('mousemove', handleActivity);
+                    window.addEventListener('keydown', handleActivity);
+                    window.addEventListener('click', handleActivity);
+                    window.addEventListener('scroll', handleActivity);
+                }
+
+                return () => {
+                    clearTimeout(timeout);
+                    window.removeEventListener('mousemove', handleActivity);
+                    window.removeEventListener('keydown', handleActivity);
+                    window.removeEventListener('click', handleActivity);
+                    window.removeEventListener('scroll', handleActivity);
+                };
+            }, [isIdle]);
 
             const onEnterHover = () => setCursorType('hover');
             const onEnterText = () => setCursorType('text');
@@ -570,6 +597,16 @@
                 setTimeout(() => setUselessMessage(null), 2000);
             };
 
+            const handleIdleCatClick = () => {
+                const newCount = idleCatClicks + 1;
+                if (newCount >= 5) {
+                    setIsIdle(false);
+                    setIdleCatClicks(0);
+                } else {
+                    setIdleCatClicks(newCount);
+                }
+            };
+
             return (
                 <div 
                     className={`min-h-screen text-black dark:text-white font-sans cursor-none transition-colors duration-500 overflow-x-hidden ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
@@ -582,9 +619,31 @@
                         ></div>
                     </div>
 
+                    {isIdle && (
+                        <div className="fixed inset-0 z-[40000] bg-black/95 backdrop-blur-sm flex flex-col items-center justify-center cursor-none select-none transition-opacity duration-500">
+                            <div 
+                                className="relative cursor-none active:scale-95 transition-transform duration-100 group flex flex-col items-center justify-center"
+                                onClick={handleIdleCatClick}
+                                onMouseEnter={onEnterHover} 
+                                onMouseLeave={onLeave}
+                            >
+                                <img 
+                                    src="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/main/resources/orange-cat-illustration-by-Vexels.png" 
+                                    alt="Giant Orange Cat" 
+                                    className="w-[80vw] max-w-[800px] h-[70vh] object-contain drop-shadow-[0_0_60px_rgba(255,165,0,0.4)] transition-all duration-300"
+                                    style={{ transform: `scale(${1 + (idleCatClicks * 0.05)})` }}
+                                    draggable="false"
+                                />
+                                <div className="absolute bottom-4 bg-black/80 px-6 py-3 border border-white/20 rounded-full text-white font-mono text-sm md:text-xl uppercase tracking-widest text-center whitespace-nowrap backdrop-blur-md">
+                                    {idleCatClicks === 0 ? 'system idle. pet 5 times to wake.' : `purr... ${5 - idleCatClicks} more`}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     <div 
                         ref={cursorRef}
-                        className={`custom-cursor fixed pointer-events-none z-[9999] rounded-full flex items-center justify-center overflow-hidden transition-[width,height,background-color] duration-200 ease-out mix-blend-difference
+                        className={`custom-cursor fixed pointer-events-none z-[50000] rounded-full flex items-center justify-center overflow-hidden transition-[width,height,background-color] duration-200 ease-out mix-blend-difference
                         ${cursorType === 'hover' ? 'w-24 h-24 bg-white' : 
                             cursorType === 'text' ? 'w-32 h-32 bg-[#007187] mix-blend-normal' : 
                             'w-4 h-4 bg-white'}`}
