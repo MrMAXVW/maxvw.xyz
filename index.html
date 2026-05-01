@@ -23,7 +23,7 @@
     <script src="https://unpkg.com/@babel/standalone/lucide-react.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&family=Fira+Code:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,700&family=Inter:wght@400;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&family=Fira+Code:wght@400;700&display=swap');
         
         body {
             margin: 0;
@@ -49,7 +49,7 @@
 
         .font-huge { font-family: 'Inter', sans-serif; font-weight: 900; }
         .font-marquee { font-family: 'Montserrat', sans-serif; font-weight: 900; }
-        .font-serif-italic { font-family: 'Playfair Display', serif; font-style: italic; font-weight: 900; }
+        .font-serif-italic { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 700; }
         .font-mono-code { font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
         
         .text-huge { font-size: clamp(5rem, 13vw, 17rem); line-height: 0.85; letter-spacing: -0.05em; }
@@ -219,6 +219,12 @@
             position: absolute;
             pointer-events: none;
             animation: heart-rise 1s ease-out forwards;
+        }
+
+        /* Global Click Ripple */
+        @keyframes global-ripple {
+            0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.8; }
+            100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
         }
     </style>
 </head>
@@ -413,11 +419,43 @@
             const [catHearts, setCatHearts] = useState([]);
             const [isIdle, setIsIdle] = useState(false);
             const [idleCatClicks, setIdleCatClicks] = useState(0);
+            const [clickEffects, setClickEffects] = useState([]);
+
+            // New States for Battery & Catch Me
+            const [batteryLevel, setBatteryLevel] = useState(null);
+            const [isCharging, setIsCharging] = useState(false);
+            const [batterySupported, setBatterySupported] = useState(true);
+            const [freeMoneyPos, setFreeMoneyPos] = useState({ x: 0, y: 0 });
             
             const cursorRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
             const shakeAcc = useRef(0);
             const lastShakeTime = useRef(Date.now());
+
+            // Battery API Effect
+            useEffect(() => {
+                if ('getBattery' in navigator) {
+                    navigator.getBattery().then(battery => {
+                        setBatteryLevel(battery.level * 100);
+                        setIsCharging(battery.charging);
+
+                        const updateBattery = () => {
+                            setBatteryLevel(battery.level * 100);
+                            setIsCharging(battery.charging);
+                        };
+
+                        battery.addEventListener('levelchange', updateBattery);
+                        battery.addEventListener('chargingchange', updateBattery);
+
+                        return () => {
+                            battery.removeEventListener('levelchange', updateBattery);
+                            battery.removeEventListener('chargingchange', updateBattery);
+                        };
+                    });
+                } else {
+                    setBatterySupported(false);
+                }
+            }, []);
 
             useEffect(() => {
                 const handleScroll = () => {
@@ -435,6 +473,21 @@
                     setAnxietyTime(prev => new Date(prev.getTime() + 1500));
                 }, 1000);
                 return () => clearInterval(timer);
+            }, []);
+
+            useEffect(() => {
+                const handleGlobalClick = (e) => {
+                    const x = e.clientX;
+                    const y = e.clientY;
+                    if (x === undefined || y === undefined) return;
+                    const id = Date.now() + Math.random();
+                    setClickEffects(prev => [...prev, { id, x, y }]);
+                    setTimeout(() => {
+                        setClickEffects(prev => prev.filter(c => c.id !== id));
+                    }, 600);
+                };
+                window.addEventListener('pointerdown', handleGlobalClick);
+                return () => window.removeEventListener('pointerdown', handleGlobalClick);
             }, []);
 
             useEffect(() => {
@@ -607,6 +660,15 @@
                 }
             };
 
+            const handleFreeMoneyMove = (e) => {
+                if (e.type === 'touchstart') e.preventDefault(); // Prevents touch scrolling/clicking instantly on mobile
+                const maxX = 120;
+                const maxY = 100;
+                const newX = (Math.random() - 0.5) * maxX * 2;
+                const newY = (Math.random() - 0.5) * maxY * 2;
+                setFreeMoneyPos({ x: newX, y: newY });
+            };
+
             return (
                 <div 
                     className={`min-h-screen text-black dark:text-white font-sans cursor-none transition-colors duration-500 overflow-x-hidden ${isCrazy ? 'crazy-transition' : ''} ${isDestroyed ? 'is-destroyed' : ''}`}
@@ -764,7 +826,7 @@
                             </div>
 
                             <div 
-                                className="bg-black dark:bg-white text-white dark:text-black p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] transition-colors min-h-[150px]"
+                                className="bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] hover:text-white dark:hover:text-white transition-colors min-h-[150px] border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10"
                                 onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
                             >
                                 <div className="text-sm font-huge tracking-widest uppercase">{copyStatus ? 'copied!' : 'get in touch'}</div>
@@ -784,7 +846,7 @@
                             </div>
                         </section>
 
-                        <section className="px-px pb-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-2 overflow-hidden">
+                        <section className="px-px pb-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-2 overflow-hidden border-t-0">
                             {/* Mark Six Box */}
                             <div 
                                 className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col border-b md:border-r border-black/10 dark:border-white/10 min-h-[400px] group overflow-hidden"
@@ -799,7 +861,7 @@
                                         draw again
                                     </button>
                                 </div>
-                                <div className="flex-grow flex flex-wrap gap-4 items-center justify-center">
+                                <div className="flex-grow grid grid-cols-3 gap-4 md:gap-6 place-content-center place-items-center w-full max-w-[320px] mx-auto py-8">
                                     {markSixNumbers.map((n, i) => (
                                         <div 
                                             key={`${n}-${i}-${isDrawing}`} 
@@ -815,7 +877,7 @@
 
                             {/* Pet the Cat Box */}
                             <div 
-                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[400px] relative overflow-hidden group cursor-none"
+                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[400px] relative overflow-hidden group cursor-none border-b border-black/10 dark:border-white/10"
                                 onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handlePetCat}
                             >
                                 <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">companion / pet.the.cat</div>
@@ -836,6 +898,55 @@
                                 </div>
                                 <div className="mt-4 text-center">
                                     <span className="font-mono-code text-[10px] opacity-40 lowercase">petting detected: purr...</span>
+                                </div>
+                            </div>
+
+                            {/* Free Money Box (Catch Me) */}
+                            <div 
+                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[300px] relative overflow-hidden group border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10"
+                                onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                            >
+                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">interactive / free.money</div>
+                                <div className="flex-grow flex items-center justify-center relative">
+                                    <button 
+                                        onMouseEnter={handleFreeMoneyMove}
+                                        onTouchStart={handleFreeMoneyMove}
+                                        onClick={handleFreeMoneyMove}
+                                        className="absolute bg-[#007187] text-white font-huge text-[8px] md:text-[10px] uppercase px-3 py-1.5 rounded-full transition-transform duration-200 ease-out shadow-xl cursor-none"
+                                        style={{ transform: `translate(${freeMoneyPos.x}px, ${freeMoneyPos.y}px)` }}
+                                    >
+                                        free money
+                                    </button>
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <span className="font-mono-code text-[10px] opacity-40 lowercase">good luck catching that.</span>
+                                </div>
+                            </div>
+
+                            {/* Battery Anxiety Box */}
+                            <div 
+                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[300px] relative overflow-hidden group cursor-none"
+                                onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                            >
+                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">system / battery.anxiety</div>
+                                <div className="flex-grow flex flex-col items-center justify-center relative">
+                                    {!batterySupported ? (
+                                        <div className="font-mono-code text-sm opacity-40 lowercase text-center">battery api blocked by browser.<br/>you are safe from this anxiety.</div>
+                                    ) : (
+                                        <>
+                                            <div className={`text-6xl md:text-8xl font-huge tracking-tighter tabular-nums ${batteryLevel <= 20 && !isCharging ? 'animate-danger text-white px-4 rounded-xl' : ''}`}>
+                                                {batteryLevel !== null ? `${Math.round(batteryLevel)}%` : '--%'}
+                                            </div>
+                                            <div className="font-mono-code text-xs mt-4 uppercase tracking-widest flex items-center gap-2">
+                                                Status: {isCharging ? <span className="text-[#007187]">CHARGING</span> : <span className={batteryLevel <= 20 ? 'text-red-500 font-bold animate-pulse' : 'opacity-40'}>DRAINING</span>}
+                                            </div>
+                                        </>
+                                    )}
+                                </div>
+                                <div className="mt-4 text-center">
+                                    <span className="font-mono-code text-[10px] opacity-40 lowercase">
+                                        {batterySupported && batteryLevel <= 20 && !isCharging ? 'go plug in your charger. right now.' : 'we are watching your power drop.'}
+                                    </span>
                                 </div>
                             </div>
                         </section>
@@ -863,6 +974,18 @@
                         className="fixed pointer-events-none z-0 w-96 h-96 bg-[#007187] blur-[180px] opacity-10 dark:opacity-20 rounded-full hidden sm:block transition-all"
                         style={{ transform: `translate3d(${mousePos.x - 192}px, ${mousePos.y - 192}px, 0)`, scale: isCrazy ? 3 : (darkMode ? 1.5 : 1), willChange: 'transform' }}
                     />
+
+                    {clickEffects.map(effect => (
+                        <div 
+                            key={effect.id}
+                            className="fixed pointer-events-none z-[999999] w-12 h-12 border border-[#007187] dark:border-white rounded-full mix-blend-difference"
+                            style={{
+                                left: effect.x,
+                                top: effect.y,
+                                animation: 'global-ripple 0.6s cubic-bezier(0.1, 0.8, 0.2, 1) forwards'
+                            }}
+                        />
+                    ))}
                 </div>
             );
         };
