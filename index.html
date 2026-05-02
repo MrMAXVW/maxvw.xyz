@@ -23,7 +23,7 @@
     <script src="https://unpkg.com/@babel/standalone/lucide-react.min.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,700&family=Inter:wght@400;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&family=Fira+Code:wght@400;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;900&family=Montserrat:wght@900&family=Playfair+Display:ital,wght@1,900&family=Playwrite+NZ+Guides&family=Fira+Code:wght@400;700&display=swap');
         
         body {
             margin: 0;
@@ -48,8 +48,9 @@
         }
 
         .font-huge { font-family: 'Inter', sans-serif; font-weight: 900; }
+        .font-anton { font-family: 'Anton', sans-serif; font-weight: 400; }
         .font-marquee { font-family: 'Montserrat', sans-serif; font-weight: 900; }
-        .font-serif-italic { font-family: 'Cormorant Garamond', serif; font-style: italic; font-weight: 700; }
+        .font-serif { font-family: 'Instrument Serif', serif; }
         .font-mono-code { font-family: 'Fira Code', 'Consolas', 'Monaco', monospace; }
         
         .text-huge { font-size: clamp(5rem, 13vw, 17rem); line-height: 0.85; letter-spacing: -0.05em; }
@@ -225,6 +226,15 @@
         @keyframes global-ripple {
             0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.8; }
             100% { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+        }
+
+        /* Breathing Noise */
+        @keyframes breathe {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.15; }
+            50% { transform: translate(-50%, -50%) scale(1.15); opacity: 0.35; }
+        }
+        .animate-breathe {
+            animation: breathe 8s ease-in-out infinite;
         }
     </style>
 </head>
@@ -420,6 +430,7 @@
             const [isIdle, setIsIdle] = useState(false);
             const [idleCatClicks, setIdleCatClicks] = useState(0);
             const [clickEffects, setClickEffects] = useState([]);
+            const [scrollY, setScrollY] = useState(0);
 
             // New States for Battery & Catch Me
             const [batteryLevel, setBatteryLevel] = useState(null);
@@ -460,6 +471,7 @@
             useEffect(() => {
                 const handleScroll = () => {
                     const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                    setScrollY(winScroll);
                     const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
                     const scrolled = height > 0 ? (winScroll / height) * 100 : 0;
                     setScrollProgress(scrolled);
@@ -538,9 +550,9 @@
             useEffect(() => {
                 let timeout;
                 const handleActivity = () => {
-                    if (isIdle) return; // Must click cat 5 times to dismiss
+                    if (isIdle) return; // Must click cat 3 times to dismiss
                     clearTimeout(timeout);
-                    timeout = setTimeout(() => setIsIdle(true), 30000);
+                    timeout = setTimeout(() => setIsIdle(true), 120000); // Changed to 2 minutes
                 };
 
                 if (!isIdle) {
@@ -652,7 +664,7 @@
 
             const handleIdleCatClick = () => {
                 const newCount = idleCatClicks + 1;
-                if (newCount >= 5) {
+                if (newCount >= 3) {
                     setIsIdle(false);
                     setIdleCatClicks(0);
                 } else {
@@ -697,7 +709,7 @@
                                     draggable="false"
                                 />
                                 <div className="absolute bottom-4 bg-black/80 px-6 py-3 border border-white/20 rounded-full text-white font-mono text-sm md:text-xl uppercase tracking-widest text-center whitespace-nowrap backdrop-blur-md">
-                                    {idleCatClicks === 0 ? 'system idle. pet 5 times to wake.' : `purr... ${5 - idleCatClicks} more`}
+                                    {idleCatClicks === 0 ? 'system idle. pet 3 times to wake.' : `purr... ${3 - idleCatClicks} more`}
                                 </div>
                             </div>
                         </div>
@@ -745,32 +757,48 @@
 
                     <div className="relative">
                         <main className="relative pt-40 pl-6 pr-0 md:pl-16 md:pr-0 min-h-screen flex flex-col justify-center overflow-hidden">
-                            <div className="text-huge font-huge mb-4">
-                                <div className="flex items-center gap-4 whitespace-nowrap overflow-hidden">
-                                    <MagneticText text="CREATIVE" mousePos={mousePos} />
-                                    <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
-                                </div>
-                                <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap overflow-hidden">
-                                    <MagneticText text="DEVELOPMENT" className="font-serif-italic text-[#007187] hover:text-[#871600] transition-colors duration-500" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
-                                </div>
-                                <div className="whitespace-nowrap overflow-hidden">
-                                    <MagneticText text="EXPERIMENTAL" className="outline-text uppercase" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
-                                </div>
-                            </div>
-                            <div className="mt-20 pr-6 md:pr-16 flex flex-col md:flex-row justify-between items-end gap-10">
-                                <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight lowercase">
-                                    maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187] glitch-text">chaos</span> meets code. no roadmaps, no promises, just raw exploration.
-                                </p>
-                                <button 
-                                    onClick={handleUselessClick} onMouseEnter={onEnterHover} onMouseLeave={onLeave}
-                                    className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500 shrink-0"
-                                >
-                                    <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
-                                    <ArrowUpRightIcon size={48} className="relative z-10" />
-                                    <div className="relative z-10 text-[8px] uppercase font-mono mt-2 transition-all duration-300">
-                                        {isCrazy ? 'stop' : (clickCount === 0 ? 'click' : `toggle ${5-clickCount}`)}
+                            {/* Breathing Circular Noise */}
+                            <div 
+                                className="absolute top-1/2 left-1/2 w-[80vw] max-w-[800px] aspect-square rounded-full bg-black/30 dark:bg-[#007187]/60 mix-blend-overlay dark:mix-blend-screen animate-breathe z-0 pointer-events-none"
+                                style={{ filter: 'url(#noiseFilter) blur(30px)' }}
+                            />
+
+                            {/* Scroll Animated Wrapper */}
+                            <div 
+                                className="relative z-10 w-full transition-transform duration-75 ease-out will-change-transform"
+                                style={{ 
+                                    opacity: Math.max(1 - scrollY / 600, 0),
+                                    transform: `translate3d(0, ${scrollY * 0.4}px, 0) scale(${Math.max(1 - scrollY / 2000, 0.95)})`,
+                                    pointerEvents: scrollY > 300 ? 'none' : 'auto'
+                                }}
+                            >
+                                <div className="text-huge font-huge mb-4">
+                                    <div className="flex items-center gap-4 whitespace-nowrap overflow-hidden">
+                                        <MagneticText text="CREATIVE" className="font-anton uppercase tracking-[0.15em]" mousePos={mousePos} />
+                                        <div className="h-[2px] flex-grow bg-black dark:bg-white mt-8 hidden md:block" />
                                     </div>
-                                </button>
+                                    <div className="flex flex-wrap items-baseline gap-x-8 whitespace-nowrap overflow-hidden">
+                                        <MagneticText text="DEVELOPMENT" className="font-serif text-[#007187] hover:text-[#871600] transition-colors duration-500" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
+                                    </div>
+                                    <div className="whitespace-nowrap overflow-hidden">
+                                        <MagneticText text="EXPERIMENTAL" className="outline-text uppercase" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
+                                    </div>
+                                </div>
+                                <div className="mt-20 pr-6 md:pr-16 flex flex-col md:flex-row justify-between items-end gap-10">
+                                    <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight lowercase">
+                                        maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187] glitch-text">chaos</span> meets code. no roadmaps, no promises, just raw exploration.
+                                    </p>
+                                    <button 
+                                        onClick={handleUselessClick} onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                                        className="group cursor-none relative overflow-hidden bg-black dark:bg-white text-white dark:text-black p-8 md:p-12 rounded-full w-32 h-32 md:w-48 md:h-48 flex flex-col items-center justify-center hover:scale-110 transition-transform duration-500 shrink-0"
+                                    >
+                                        <div className="absolute inset-0 bg-[#007187] translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
+                                        <ArrowUpRightIcon size={48} className="relative z-10" />
+                                        <div className="relative z-10 text-[8px] uppercase font-mono mt-2 transition-all duration-300">
+                                            {isCrazy ? 'stop' : (clickCount === 0 ? 'click' : `toggle ${5-clickCount}`)}
+                                        </div>
+                                    </button>
+                                </div>
                             </div>
                         </main>
 
