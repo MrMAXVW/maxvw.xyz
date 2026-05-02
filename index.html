@@ -408,6 +408,30 @@
             );
         };
 
+        const RevealGridItem = ({ children, delay, className = "" }) => {
+            const ref = useRef(null);
+            const [isRevealed, setIsRevealed] = useState(false);
+
+            useEffect(() => {
+                const observer = new IntersectionObserver(([entry]) => {
+                    setIsRevealed(entry.isIntersecting);
+                }, { threshold: 0.05, rootMargin: '0px 0px -50px 0px' });
+
+                if (ref.current) observer.observe(ref.current);
+                return () => observer.disconnect();
+            }, []);
+
+            return (
+                <div 
+                    ref={ref} 
+                    className={`${className} transition-opacity duration-1000 ease-in-out ${isRevealed ? 'opacity-100' : 'opacity-0'}`}
+                    style={{ transitionDelay: isRevealed ? `${delay}ms` : '0ms' }}
+                >
+                    {children}
+                </div>
+            );
+        };
+
         const App = () => {
             const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
             const [travelDistance, setTravelDistance] = useState(0);
@@ -784,7 +808,7 @@
                                         <MagneticText text="EXPERIMENTAL" className="outline-text uppercase" mousePos={mousePos} onMouseEnter={onEnterText} onMouseLeave={onLeave} />
                                     </div>
                                 </div>
-                                <div className="mt-20 pr-6 md:pr-16 flex flex-col md:flex-row justify-between items-end gap-10">
+                                <div className="mt-4 md:-mt-12 relative z-20 pr-6 md:pr-16 flex flex-col md:flex-row justify-between items-end gap-10">
                                     <p className="max-w-xl text-xl md:text-2xl font-medium leading-tight lowercase">
                                         maxvw.xyz is a digital sandbox where <span className="underline decoration-4 decoration-[#007187] glitch-text">chaos</span> meets code. no roadmaps, no promises, just raw exploration.
                                     </p>
@@ -814,169 +838,187 @@
                         </div>
 
                         <section className="p-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-4 md:grid-rows-2 h-auto md:min-h-[800px] overflow-hidden">
-                            <div className="bg-white/90 dark:bg-black/90 backdrop-blur-sm p-8 md:p-12 flex flex-col justify-between border-b md:border-r border-black/10 dark:border-white/10 md:col-span-2 overflow-hidden">
-                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">system / anxiety.clock</div>
-                                <div className="my-auto">
-                                    <h3 className="text-6xl md:text-8xl font-huge tracking-tighter tabular-nums leading-none">
-                                        {anxietyTime.toLocaleTimeString('en-GB', { hour12: false })}
-                                    </h3>
-                                    <p className="text-sm font-mono-code mt-4 opacity-40 lowercase">time is moving 1.5x faster here. are you efficient enough?</p>
+                            <RevealGridItem delay={0} className="md:col-span-2 h-full">
+                                <div className="h-full w-full bg-white/90 dark:bg-black/90 backdrop-blur-sm p-8 md:p-12 flex flex-col justify-between border-b md:border-r border-black/10 dark:border-white/10 overflow-hidden">
+                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">system / anxiety.clock</div>
+                                    <div className="my-auto">
+                                        <h3 className="text-6xl md:text-8xl font-huge tracking-tighter tabular-nums leading-none">
+                                            {anxietyTime.toLocaleTimeString('en-GB', { hour12: false })}
+                                        </h3>
+                                        <p className="text-sm font-mono-code mt-4 opacity-40 lowercase">time is moving 1.5x faster here. are you efficient enough?</p>
+                                    </div>
+                                    <div className="h-1 w-full bg-black/5 dark:bg-white/5 mt-8 overflow-hidden rounded-full">
+                                        <div className="h-full bg-[#007187] transition-all duration-1000" style={{ width: `${(anxietyTime.getSeconds() / 60) * 100}%` }} />
+                                    </div>
                                 </div>
-                                <div className="h-1 w-full bg-black/5 dark:bg-white/5 mt-8 overflow-hidden rounded-full">
-                                    <div className="h-full bg-[#007187] transition-all duration-1000" style={{ width: `${(anxietyTime.getSeconds() / 60) * 100}%` }} />
-                                </div>
-                            </div>
+                            </RevealGridItem>
 
-                            <div 
-                                className="bg-white/90 dark:bg-black/90 backdrop-blur-sm p-8 flex flex-col items-center justify-center border-b border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden min-h-[300px]"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setStressCount(s => s + 1)}
-                            >
-                                <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">interactive / stress.test</div>
-                                <div className={`flex items-center justify-center transition-all duration-100 ${stressCount > 10 ? 'animate-shake' : ''}`}
-                                    style={{ 
-                                        fontSize: stressCount > 50 ? `${Math.min(100 + (stressCount - 50) * 5, 1000)}vh` : 'clamp(5rem, 15vw, 12rem)', 
-                                        lineHeight: 1 
-                                    }}>
-                                    {stressCount === 0 ? '😐' : stressCount < 20 ? '😰' : stressCount < 40 ? '😱' : '💀'}
+                            <RevealGridItem delay={150} className="h-full">
+                                <div 
+                                    className="h-full w-full bg-white/90 dark:bg-black/90 backdrop-blur-sm p-8 flex flex-col items-center justify-center border-b md:border-r border-black/10 dark:border-white/10 cursor-none group relative active:scale-95 transition-transform overflow-hidden min-h-[300px]"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={() => setStressCount(s => s + 1)}
+                                >
+                                    <div className="absolute top-8 left-8 text-[10px] font-mono opacity-40 uppercase tracking-widest">interactive / stress.test</div>
+                                    <div className={`flex items-center justify-center transition-all duration-100 ${stressCount > 10 ? 'animate-shake' : ''}`}
+                                        style={{ 
+                                            fontSize: stressCount > 50 ? `${Math.min(100 + (stressCount - 50) * 5, 1000)}vh` : 'clamp(5rem, 15vw, 12rem)', 
+                                            lineHeight: 1 
+                                        }}>
+                                        {stressCount === 0 ? '😐' : stressCount < 20 ? '😰' : stressCount < 40 ? '😱' : '💀'}
+                                    </div>
+                                    <div className="mt-8 text-center absolute bottom-8">
+                                        <span className="font-mono-code text-xs opacity-40 lowercase">clicks: {stressCount}</span>
+                                    </div>
                                 </div>
-                                <div className="mt-8 text-center absolute bottom-8">
-                                    <span className="font-mono-code text-xs opacity-40 lowercase">clicks: {stressCount}</span>
-                                </div>
-                            </div>
+                            </RevealGridItem>
 
-                            <div 
-                                className="p-8 flex flex-col justify-between border-b md:border-l border-black/10 dark:border-white/10 text-white cursor-none animate-danger hover:bg-black transition-all group overflow-hidden min-h-[200px]"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={triggerModals}
-                            >
-                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest text-white/60">utility / panic.button</div>
-                                <div className="text-4xl font-huge leading-none tracking-tighter lowercase">don't touch this.</div>
-                                <div className="text-[8px] font-mono opacity-30 mt-4 leading-tight lowercase">high risk of system instability. do not interact if you value your time.</div>
-                            </div>
-
-                            <div 
-                                className="bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] hover:text-white dark:hover:text-white transition-colors min-h-[150px] border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
-                            >
-                                <div className="text-sm font-huge tracking-widest uppercase">{copyStatus ? 'copied!' : 'get in touch'}</div>
-                                <div className="font-mono-code text-[10px] opacity-40 lowercase">max@maxvw.xyz</div>
-                            </div>
-
-                            <div className="bg-white/90 dark:bg-black/90 backdrop-blur-sm p-8 md:p-12 flex flex-col justify-between border-black/10 dark:border-white/10 md:col-span-3 group overflow-hidden">
-                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">analytics / life.odometer</div>
-                                <div className="my-8">
-                                    <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase text-wrap lowercase">total mouse distance (px):</span>
-                                    <h3 className="text-5xl md:text-9xl font-huge tracking-tighter tabular-nums truncate">{Math.floor(travelDistance).toLocaleString()}</h3>
+                            <RevealGridItem delay={300} className="h-full">
+                                <div 
+                                    className="h-full w-full p-8 flex flex-col justify-between border-b md:border-l-0 border-black/10 dark:border-white/10 text-white cursor-none animate-danger hover:bg-black transition-colors duration-300 group overflow-hidden min-h-[200px]"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={triggerModals}
+                                >
+                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest text-white/60">utility / panic.button</div>
+                                    <div className="text-4xl font-huge leading-none tracking-tighter lowercase">don't touch this.</div>
+                                    <div className="text-[8px] font-mono opacity-30 mt-4 leading-tight lowercase">high risk of system instability. do not interact if you value your time.</div>
                                 </div>
-                                <div className="flex flex-wrap gap-4 font-mono text-[10px] uppercase opacity-40 lowercase">
-                                    <div>calories: {(travelDistance * 0.0001).toFixed(4)}</div>
-                                    <div>sanity: low</div>
+                            </RevealGridItem>
+
+                            <RevealGridItem delay={100} className="h-full">
+                                <div 
+                                    className="h-full w-full bg-white/90 dark:bg-black/90 backdrop-blur-sm text-black dark:text-white p-8 flex flex-col justify-center items-center gap-4 cursor-none hover:bg-[#007187] hover:text-white dark:hover:text-white transition-colors duration-300 min-h-[150px] border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handleCopyEmail}
+                                >
+                                    <div className="text-sm font-huge tracking-widest uppercase">{copyStatus ? 'copied!' : 'get in touch'}</div>
+                                    <div className="font-mono-code text-[10px] opacity-40 lowercase">max@maxvw.xyz</div>
                                 </div>
-                            </div>
+                            </RevealGridItem>
+
+                            <RevealGridItem delay={250} className="md:col-span-3 h-full">
+                                <div className="h-full w-full bg-white/90 dark:bg-black/90 backdrop-blur-sm p-8 md:p-12 flex flex-col justify-between border-black/10 dark:border-white/10 group overflow-hidden">
+                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">analytics / life.odometer</div>
+                                    <div className="my-8">
+                                        <span className="text-xs font-mono-code opacity-40 block mb-2 uppercase text-wrap lowercase">total mouse distance (px):</span>
+                                        <h3 className="text-5xl md:text-9xl font-huge tracking-tighter tabular-nums truncate">{Math.floor(travelDistance).toLocaleString()}</h3>
+                                    </div>
+                                    <div className="flex flex-wrap gap-4 font-mono text-[10px] uppercase opacity-40 lowercase">
+                                        <div>calories: {(travelDistance * 0.0001).toFixed(4)}</div>
+                                        <div>sanity: low</div>
+                                    </div>
+                                </div>
+                            </RevealGridItem>
                         </section>
 
                         <section className="px-px pb-px bg-black/10 dark:bg-white/10 grid grid-cols-1 md:grid-cols-2 overflow-hidden border-t-0">
                             {/* Mark Six Box */}
-                            <div 
-                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col border-b md:border-r border-black/10 dark:border-white/10 min-h-[400px] group overflow-hidden"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave}
-                            >
-                                <div className="flex justify-between items-start mb-10">
-                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">utility / marksix.draw</div>
-                                    <button 
-                                        onClick={drawMarkSix}
-                                        className="text-[10px] font-mono border border-black/20 dark:border-white/20 px-4 py-1 rounded-full hover:bg-[#007187] hover:text-white transition-all lowercase tracking-tighter"
-                                    >
-                                        draw again
-                                    </button>
-                                </div>
-                                <div className="flex-grow grid grid-cols-3 gap-4 md:gap-6 place-content-center place-items-center w-full max-w-[320px] mx-auto py-8">
-                                    {markSixNumbers.map((n, i) => (
-                                        <div 
-                                            key={`${n}-${i}-${isDrawing}`} 
-                                            className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-white font-huge text-2xl md:text-3xl shadow-lg border-2 border-white/20 animate-ball ${getBallColor(n)}`}
-                                            style={{ animationDelay: `${i * 0.1}s` }}
+                            <RevealGridItem delay={0} className="h-full">
+                                <div 
+                                    className="h-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col border-b md:border-r border-black/10 dark:border-white/10 min-h-[400px] group overflow-hidden"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                                >
+                                    <div className="flex justify-between items-start mb-10">
+                                        <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest">utility / marksix.draw</div>
+                                        <button 
+                                            onClick={drawMarkSix}
+                                            className="text-[10px] font-mono border border-black/20 dark:border-white/20 px-4 py-1 rounded-full hover:bg-[#007187] hover:text-white transition-all lowercase tracking-tighter"
                                         >
-                                            {n}
-                                        </div>
-                                    ))}
+                                            draw again
+                                        </button>
+                                    </div>
+                                    <div className="flex-grow grid grid-cols-3 gap-4 md:gap-6 place-content-center place-items-center w-full max-w-[320px] mx-auto py-8">
+                                        {markSixNumbers.map((n, i) => (
+                                            <div 
+                                                key={`${n}-${i}-${isDrawing}`} 
+                                                className={`w-16 h-16 md:w-20 md:h-20 rounded-full flex items-center justify-center text-white font-huge text-2xl md:text-3xl shadow-lg border-2 border-white/20 animate-ball ${getBallColor(n)}`}
+                                                style={{ animationDelay: `${i * 0.1}s` }}
+                                            >
+                                                {n}
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-10 text-[9px] font-mono opacity-30 text-center lowercase">1 in 13,983,816 chance. good luck.</div>
                                 </div>
-                                <div className="mt-10 text-[9px] font-mono opacity-30 text-center lowercase">1 in 13,983,816 chance. good luck.</div>
-                            </div>
+                            </RevealGridItem>
 
                             {/* Pet the Cat Box */}
-                            <div 
-                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[400px] relative overflow-hidden group cursor-none border-b border-black/10 dark:border-white/10"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handlePetCat}
-                            >
-                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">companion / pet.the.cat</div>
-                                <div className="flex-grow flex items-center justify-center relative">
-                                    <div className="w-48 h-48 md:w-64 md:h-64 relative group-hover:scale-105 transition-transform duration-500">
-                                        <img 
-                                            src="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/main/resources/cat.png" 
-                                            alt="Black Cat" 
-                                            className="w-full h-full object-contain drop-shadow-2xl pointer-events-none"
-                                            draggable="false"
-                                        />
-                                    </div>
-                                    {catHearts.map(h => (
-                                        <div key={h.id} className="heart-particle text-red-500 text-3xl" style={{ left: h.x, top: h.y }}>
-                                            ❤
+                            <RevealGridItem delay={150} className="h-full">
+                                <div 
+                                    className="h-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[400px] relative overflow-hidden group cursor-none border-b border-black/10 dark:border-white/10"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave} onClick={handlePetCat}
+                                >
+                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">companion / pet.the.cat</div>
+                                    <div className="flex-grow flex items-center justify-center relative">
+                                        <div className="w-48 h-48 md:w-64 md:h-64 relative group-hover:scale-105 transition-transform duration-500">
+                                            <img 
+                                                src="https://raw.githubusercontent.com/MrMAXVW/maxvw.xyz/main/resources/cat.png" 
+                                                alt="Black Cat" 
+                                                className="w-full h-full object-contain drop-shadow-2xl pointer-events-none"
+                                                draggable="false"
+                                            />
                                         </div>
-                                    ))}
+                                        {catHearts.map(h => (
+                                            <div key={h.id} className="heart-particle text-red-500 text-3xl" style={{ left: h.x, top: h.y }}>
+                                                ❤
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-4 text-center">
+                                        <span className="font-mono-code text-[10px] opacity-40 lowercase">petting detected: purr...</span>
+                                    </div>
                                 </div>
-                                <div className="mt-4 text-center">
-                                    <span className="font-mono-code text-[10px] opacity-40 lowercase">petting detected: purr...</span>
-                                </div>
-                            </div>
+                            </RevealGridItem>
 
                             {/* Free Money Box (Catch Me) */}
-                            <div 
-                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[300px] relative overflow-hidden group border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave}
-                            >
-                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">interactive / free.money</div>
-                                <div className="flex-grow flex items-center justify-center relative">
-                                    <button 
-                                        onMouseEnter={handleFreeMoneyMove}
-                                        onTouchStart={handleFreeMoneyMove}
-                                        onClick={handleFreeMoneyMove}
-                                        className="absolute bg-[#007187] text-white font-huge text-[8px] md:text-[10px] uppercase px-3 py-1.5 rounded-full transition-transform duration-200 ease-out shadow-xl cursor-none"
-                                        style={{ transform: `translate(${freeMoneyPos.x}px, ${freeMoneyPos.y}px)` }}
-                                    >
-                                        free money
-                                    </button>
+                            <RevealGridItem delay={0} className="h-full">
+                                <div 
+                                    className="h-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[300px] relative overflow-hidden group border-b md:border-b-0 md:border-r border-black/10 dark:border-white/10"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                                >
+                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">interactive / free.money</div>
+                                    <div className="flex-grow flex items-center justify-center relative">
+                                        <button 
+                                            onMouseEnter={handleFreeMoneyMove}
+                                            onTouchStart={handleFreeMoneyMove}
+                                            onClick={handleFreeMoneyMove}
+                                            className="absolute bg-[#007187] text-white font-huge text-[8px] md:text-[10px] uppercase px-3 py-1.5 rounded-full transition-transform duration-200 ease-out shadow-xl cursor-none"
+                                            style={{ transform: `translate(${freeMoneyPos.x}px, ${freeMoneyPos.y}px)` }}
+                                        >
+                                            free money
+                                        </button>
+                                    </div>
+                                    <div className="mt-4 text-center">
+                                        <span className="font-mono-code text-[10px] opacity-40 lowercase">good luck catching that.</span>
+                                    </div>
                                 </div>
-                                <div className="mt-4 text-center">
-                                    <span className="font-mono-code text-[10px] opacity-40 lowercase">good luck catching that.</span>
-                                </div>
-                            </div>
+                            </RevealGridItem>
 
                             {/* Battery Anxiety Box */}
-                            <div 
-                                className="bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[300px] relative overflow-hidden group cursor-none"
-                                onMouseEnter={onEnterHover} onMouseLeave={onLeave}
-                            >
-                                <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">system / battery.anxiety</div>
-                                <div className="flex-grow flex flex-col items-center justify-center relative">
-                                    {!batterySupported ? (
-                                        <div className="font-mono-code text-sm opacity-40 lowercase text-center">battery api blocked by browser.<br/>you are safe from this anxiety.</div>
-                                    ) : (
-                                        <>
-                                            <div className={`text-6xl md:text-8xl font-huge tracking-tighter tabular-nums ${batteryLevel <= 20 && !isCharging ? 'animate-danger text-white px-4 rounded-xl' : ''}`}>
-                                                {batteryLevel !== null ? `${Math.round(batteryLevel)}%` : '--%'}
-                                            </div>
-                                            <div className="font-mono-code text-xs mt-4 uppercase tracking-widest flex items-center gap-2">
-                                                Status: {isCharging ? <span className="text-[#007187]">CHARGING</span> : <span className={batteryLevel <= 20 ? 'text-red-500 font-bold animate-pulse' : 'opacity-40'}>DRAINING</span>}
-                                            </div>
-                                        </>
-                                    )}
+                            <RevealGridItem delay={150} className="h-full">
+                                <div 
+                                    className="h-full w-full bg-white/95 dark:bg-black/95 backdrop-blur-md p-8 md:p-12 flex flex-col min-h-[300px] relative overflow-hidden group cursor-none"
+                                    onMouseEnter={onEnterHover} onMouseLeave={onLeave}
+                                >
+                                    <div className="text-[10px] font-mono opacity-40 uppercase tracking-widest mb-4">system / battery.anxiety</div>
+                                    <div className="flex-grow flex flex-col items-center justify-center relative">
+                                        {!batterySupported ? (
+                                            <div className="font-mono-code text-sm opacity-40 lowercase text-center">battery api blocked by browser.<br/>you are safe from this anxiety.</div>
+                                        ) : (
+                                            <>
+                                                <div className={`text-6xl md:text-8xl font-huge tracking-tighter tabular-nums ${batteryLevel <= 20 && !isCharging ? 'animate-danger text-white px-4 rounded-xl' : ''}`}>
+                                                    {batteryLevel !== null ? `${Math.round(batteryLevel)}%` : '--%'}
+                                                </div>
+                                                <div className="font-mono-code text-xs mt-4 uppercase tracking-widest flex items-center gap-2">
+                                                    Status: {isCharging ? <span className="text-[#007187]">CHARGING</span> : <span className={batteryLevel <= 20 ? 'text-red-500 font-bold animate-pulse' : 'opacity-40'}>DRAINING</span>}
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                    <div className="mt-4 text-center">
+                                        <span className="font-mono-code text-[10px] opacity-40 lowercase">
+                                            {batterySupported && batteryLevel <= 20 && !isCharging ? 'go plug in your charger. right now.' : 'we are watching your power drop.'}
+                                        </span>
+                                    </div>
                                 </div>
-                                <div className="mt-4 text-center">
-                                    <span className="font-mono-code text-[10px] opacity-40 lowercase">
-                                        {batterySupported && batteryLevel <= 20 && !isCharging ? 'go plug in your charger. right now.' : 'we are watching your power drop.'}
-                                    </span>
-                                </div>
-                            </div>
+                            </RevealGridItem>
                         </section>
 
                         <footer className="py-10 px-6 md:p-10 flex flex-col md:flex-row justify-between items-center gap-8 border-t border-black/5 dark:border-white/5">
