@@ -461,6 +461,7 @@
             const [isCharging, setIsCharging] = useState(false);
             const [batterySupported, setBatterySupported] = useState(true);
             const [freeMoneyPos, setFreeMoneyPos] = useState({ x: 0, y: 0 });
+            const [caughtMoney, setCaughtMoney] = useState(false);
             
             const cursorRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
@@ -703,6 +704,15 @@
                 const newX = (Math.random() - 0.5) * maxX * 2;
                 const newY = (Math.random() - 0.5) * maxY * 2;
                 setFreeMoneyPos({ x: newX, y: newY });
+            };
+
+            const handleFreeMoneyClick = (e) => {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                setCaughtMoney(true);
+                setTimeout(() => setCaughtMoney(false), 3000);
             };
 
             return (
@@ -978,15 +988,17 @@
                                         <button 
                                             onMouseEnter={handleFreeMoneyMove}
                                             onTouchStart={handleFreeMoneyMove}
-                                            onClick={handleFreeMoneyMove}
+                                            onClick={handleFreeMoneyClick}
                                             className="absolute bg-[#007187] text-white font-huge text-[8px] md:text-[10px] uppercase px-3 py-1.5 rounded-full transition-transform duration-200 ease-out shadow-xl cursor-none"
                                             style={{ transform: `translate(${freeMoneyPos.x}px, ${freeMoneyPos.y}px)` }}
                                         >
                                             free money
                                         </button>
                                     </div>
-                                    <div className="mt-4 text-center">
-                                        <span className="font-mono-code text-[10px] opacity-40 lowercase">good luck catching that.</span>
+                                    <div className="mt-4 text-center min-h-[16px]">
+                                        <span className={`font-mono-code text-[10px] lowercase transition-colors duration-300 ${caughtMoney ? 'text-red-500 font-bold opacity-100' : 'opacity-40'}`}>
+                                            {caughtMoney ? 'now you owe me money.' : 'good luck catching that.'}
+                                        </span>
                                     </div>
                                 </div>
                             </RevealGridItem>
